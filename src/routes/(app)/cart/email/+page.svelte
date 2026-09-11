@@ -1,13 +1,6 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
 	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
-	import { SvelteSet } from 'svelte/reactivity';
-	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
-	import Copy from '@lucide/svelte/icons/copy';
-	import Mail from '@lucide/svelte/icons/mail';
-	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
-	import Send from '@lucide/svelte/icons/send';
+	import { resolve } from '$app/paths';
 	import BookCover from '$lib/components/BookCover.svelte';
 	import Empty from '$lib/components/Empty.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
@@ -16,6 +9,13 @@
 	import { authorsLine, plural } from '$lib/format';
 	import { toast } from '$lib/toast.svelte';
 	import type { EmailLang } from '$lib/types';
+	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+	import Copy from '@lucide/svelte/icons/copy';
+	import Mail from '@lucide/svelte/icons/mail';
+	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
+	import Send from '@lucide/svelte/icons/send';
+	import type { SubmitFunction } from '@sveltejs/kit';
+	import { SvelteSet } from 'svelte/reactivity';
 
 	let { data } = $props();
 
