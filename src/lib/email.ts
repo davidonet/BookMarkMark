@@ -79,3 +79,14 @@ export function mailtoHref(to: string, subject: string, body: string) {
 	const enc = (s: string) => encodeURIComponent(s.replace(/\r?\n/g, '\r\n'));
 	return `mailto:${to.trim()}?subject=${enc(subject)}&body=${enc(body)}`;
 }
+
+export function gmailComposeHref(to: string, subject: string, body: string) {
+	const params = new URLSearchParams({
+		view: 'cm',
+		fs: '1',
+		to: to.trim(),
+		su: subject,
+		body
+	});
+	return `https://mail.google.com/mail/?${params}`;
+}

@@ -4,7 +4,7 @@
 	import BookCover from '$lib/components/BookCover.svelte';
 	import Empty from '$lib/components/Empty.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
-	import { buildEmail, mailtoHref } from '$lib/email';
+	import { buildEmail, gmailComposeHref, mailtoHref } from '$lib/email';
 	import { markPending } from '$lib/enhance';
 	import { authorsLine, plural } from '$lib/format';
 	import { toast } from '$lib/toast.svelte';
@@ -45,6 +45,7 @@
 	const subject = $derived(subjectEdit ?? draft.subject);
 	const body = $derived(bodyEdit ?? draft.body);
 	const href = $derived(mailtoHref(to, subject, body));
+	const gmailHref = $derived(gmailComposeHref(to, subject, body));
 
 	function toggle(id: string) {
 		if (excluded.has(id)) excluded.delete(id);
@@ -218,6 +219,17 @@
 				<a {href} class="btn bg-orange" onclick={() => (opened = true)}>
 					<Mail class="size-4" /> Open in mail app
 				</a>
+				<!-- eslint-disable svelte/no-navigation-without-resolve -- external Gmail link -->
+				<a
+					href={gmailHref}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="btn"
+					onclick={() => (opened = true)}
+				>
+					<Mail class="size-4" /> Open in Gmail
+				</a>
+				<!-- eslint-enable svelte/no-navigation-without-resolve -->
 				<button type="button" class="btn" onclick={copy} disabled={!chosen.length}>
 					<Copy class="size-4" /> Copy text
 				</button>
