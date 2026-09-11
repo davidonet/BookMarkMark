@@ -1,7 +1,13 @@
-import type { EmailLang } from './types';
+import type { EmailLang, PaperEdition } from './types';
 
 interface EmailInput {
-	books: { title: string; authors: string[]; isbn?: string | null }[];
+	books: {
+		title: string;
+		authors: string[];
+		edition: PaperEdition;
+		/** Set to order the paperback instead. */
+		pocket?: { isbn: string; publisher: string; collection: string; year: number | null } | null;
+	}[];
 	lang: EmailLang;
 	myName: string;
 	bookstoreName: string;
@@ -19,7 +25,8 @@ const COPY = {
 			n > 1
 				? 'Could you let me know which ones you can get, and roughly when?'
 				: 'Could you let me know if you can get it, and roughly when?',
-		thanks: 'Many thanks!'
+		thanks: 'Many thanks!',
+		pocket: (name: string) => (/poche|pocket/i.test(name) ? name : `${name} paperback`.trim())
 	},
 	fr: {
 		subject: (n: number) => `Commande de livres : ${n} titre${n > 1 ? 's' : ''}`,
@@ -32,7 +39,8 @@ const COPY = {
 			n > 1
 				? `Pourriez-vous me dire lesquels vous pouvez obtenir, et dans quels délais${NBSP}?`
 				: `Pourriez-vous me dire si vous pouvez l’obtenir, et dans quel délai${NBSP}?`,
-		thanks: `Merci beaucoup${NBSP}!`
+		thanks: `Merci beaucoup${NBSP}!`,
+		pocket: (name: string) => (/poche|pocket/i.test(name) ? name : `poche ${name}`.trim())
 	}
 } satisfies Record<EmailLang, unknown>;
 
@@ -40,11 +48,16 @@ const COPY = {
 export function buildEmail({ books, lang, myName, bookstoreName }: EmailInput) {
 	const copy = COPY[lang];
 	const n = books.length;
-	// The ISBN pins the exact edition picked in the search.
-	const lines = books.map(
-		(b, i) =>
-			`${i + 1}. ${b.title}${b.authors.length ? ` — ${b.authors.join(', ')}` : ''}${b.isbn ? ` (ISBN ${b.isbn})` : ''}`
-	);
+	// Publisher (or pocket collection), year and ISBN pin the paper edition to order.
+	const lines = books.map((b, i) => {
+		const { year, isbn } = b.pocket ?? b.edition;
+		const publisher = b.pocket
+			? copy.pocket(b.pocket.collection || b.pocket.publisher)
+			: b.edition.publisher;
+		const edition = [publisher, year, isbn && `ISBN ${isbn}`].filter(Boolean).join(', ');
+		const authors = b.authors.length ? ` — ${b.authors.join(', ')}` : '';
+		return `${i + 1}. ${b.title}${authors}${edition ? ` (${edition})` : ''}`;
+	});
 	const body = [
 		copy.hello(bookstoreName.trim()),
 		'',

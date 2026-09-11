@@ -14,6 +14,13 @@ import {
 } from '$lib/types';
 
 export function toBook(doc: WithId<BookDoc>): Book {
+	// The BnF's paper edition when found; never an ebook ISBN, useless to a bookstore.
+	const edition = {
+		isbn: doc.details?.edition?.isbn ?? (doc.format === 'ebook' ? null : (doc.isbn ?? null)),
+		publisher: doc.details?.edition?.publisher || doc.publisher || '',
+		year: doc.details?.edition?.year ?? doc.year ?? null
+	};
+	const pocket = doc.details?.pocket ?? null;
 	return {
 		id: doc._id.toHexString(),
 		ref: doc.ref,
@@ -25,9 +32,17 @@ export function toBook(doc: WithId<BookDoc>): Book {
 		isbn: doc.isbn ?? null,
 		publisher: doc.publisher ?? '',
 		language: doc.language ?? '',
+		format: doc.format ?? null,
 		summary: doc.details?.summary ?? '',
 		price: doc.details?.price ?? null,
-		details: doc.details?.status ?? 'missing',
+		edition,
+		pocket: pocket && pocket.isbn !== edition.isbn ? pocket : null,
+		details: !doc.details
+			? 'missing'
+			: doc.details.status === 'done' &&
+				  (doc.details.edition === undefined || doc.details.pocket === undefined)
+				? 'stale'
+				: doc.details.status,
 		source: doc.source ?? '',
 		status: doc.status,
 		owned: doc.owned ?? null,

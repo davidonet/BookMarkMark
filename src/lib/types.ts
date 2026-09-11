@@ -37,6 +37,15 @@ export interface CatalogBook {
 	publisher: string;
 	/** ISO 639-1 code, '' when unknown. */
 	language: string;
+	/** From Google Books; null when unknown (Open Library). */
+	format: 'print' | 'ebook' | null;
+}
+
+/** The paper edition to ask the bookstore for (from the BnF when it knows it). */
+export interface PaperEdition {
+	isbn: string | null;
+	publisher: string;
+	year: number | null;
 }
 
 export interface Price {
@@ -48,17 +57,31 @@ export interface Price {
 	source: string;
 }
 
-/** Summary and price are looked up in the background once a book is added. */
-export type DetailsState = 'missing' | 'pending' | 'done' | 'failed';
+/** The paperback (poche) of the same book, cheaper: from the BnF, or found on bookstore sites. */
+export interface PocketEdition extends PaperEdition {
+	isbn: string;
+	/** "Folio", "Le Livre de poche"…, '' when unknown. */
+	collection: string;
+	price: Price | null;
+}
+
+/**
+ * Summary and price are looked up in the background once a book is added. `stale`: looked up
+ * before the paper and pocket editions were, which only needs a catalogue lookup.
+ */
+export type DetailsState = 'missing' | 'pending' | 'done' | 'failed' | 'stale';
 
 export const isLookingUp = (book: { details: DetailsState }) =>
-	book.details === 'pending' || book.details === 'missing';
+	book.details === 'pending' || book.details === 'missing' || book.details === 'stale';
 
 export interface Book extends CatalogBook {
 	id: string;
 	/** Short French overview, '' when unknown. */
 	summary: string;
+	edition: PaperEdition;
 	price: Price | null;
+	/** A paperback to order instead, null when none is known (or it's the edition itself). */
+	pocket: PocketEdition | null;
 	details: DetailsState;
 	source: string;
 	status: Status;

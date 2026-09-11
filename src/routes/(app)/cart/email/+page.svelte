@@ -35,6 +35,7 @@
 	const chosen = $derived(data.books.filter((b) => !excluded.has(b.id)));
 	const draft = $derived(
 		buildEmail({
+			// The paperback when there's one: cheaper.
 			books: chosen,
 			lang,
 			myName: data.settings.myName,
@@ -98,6 +99,9 @@
 			</h2>
 			<ul class="grid gap-2">
 				{#each data.books as book (book.id)}
+					{@const pocket = book.pocket}
+					{@const edition = pocket ?? book.edition}
+					{@const name = pocket ? pocket.collection || pocket.publisher : edition.publisher}
 					<li>
 						<label class="choice items-center gap-3 font-normal has-checked:bg-teal-soft">
 							<input
@@ -111,7 +115,18 @@
 							<BookCover cover={book.cover} title={book.title} class="w-9" />
 							<span class="min-w-0">
 								<span class="block leading-tight font-bold">{book.title}</span>
-								<span class="block text-sm text-ink/70">{authorsLine(book.authors)}</span>
+								<span class="block text-sm text-ink/70"
+									>{[
+										authorsLine(book.authors),
+										pocket && !/poche/i.test(name) ? `poche ${name}`.trim() : name,
+										edition.year
+									]
+										.filter(Boolean)
+										.join(' · ')}</span
+								>
+								{#if edition.isbn}
+									<span class="block font-mono text-xs text-ink/60">ISBN {edition.isbn}</span>
+								{/if}
 							</span>
 						</label>
 					</li>

@@ -53,7 +53,13 @@ export function parseNewBooks(raw: FormDataEntryValue | null): CatalogBook[] {
 			cover: cover(item?.cover),
 			isbn: /^(\d{13}|\d{9}[\dX])$/.test(str(item?.isbn, 13)) ? str(item?.isbn, 13) : null,
 			publisher: str(item?.publisher, 120),
-			language: /^[a-z]{2,3}$/.test(str(item?.language, 3)) ? str(item?.language, 3) : ''
+			language: /^[a-z]{2,3}$/.test(str(item?.language, 3)) ? str(item?.language, 3) : '',
+			format:
+				item?.format === 'ebook'
+					? ('ebook' as const)
+					: item?.format === 'print'
+						? ('print' as const)
+						: null
 		}))
 		.filter((b) => /^(gb:[\w-]{4,40}|ol:\/works\/OL\d+W)$/.test(b.ref) && b.title);
 }

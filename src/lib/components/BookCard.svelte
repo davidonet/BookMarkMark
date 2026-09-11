@@ -2,7 +2,13 @@
 	import type { Snippet } from 'svelte';
 	import BookCover from './BookCover.svelte';
 	import { authorsLine, formatPrice } from '$lib/format';
-	import { bookLink, type DetailsState, type Price } from '$lib/types';
+	import {
+		bookLink,
+		type DetailsState,
+		type PaperEdition,
+		type PocketEdition,
+		type Price
+	} from '$lib/types';
 
 	interface Props {
 		book: {
@@ -13,6 +19,10 @@
 			year: number | null;
 			cover: string | null;
 			publisher?: string;
+			/** The paper edition to order, when known (lists). */
+			edition?: PaperEdition;
+			/** Its paperback (poche), when there is one. */
+			pocket?: PocketEdition | null;
 			/** French overview and price, looked up in the background. */
 			summary?: string;
 			price?: Price | null;
@@ -30,7 +40,16 @@
 	let { book, meta, aside, children, class: className = '' }: Props = $props();
 
 	const link = $derived(bookLink(book.ref));
-	const edition = $derived([book.publisher, book.year].filter(Boolean).join(' · '));
+	const shown = $derived(
+		book.edition ?? { publisher: book.publisher ?? '', year: book.year, isbn: null }
+	);
+	const edition = $derived([shown.publisher, shown.year].filter(Boolean).join(' · '));
+	const pocket = $derived(
+		book.pocket &&
+			[book.pocket.collection || book.pocket.publisher, book.pocket.year]
+				.filter(Boolean)
+				.join(' · ')
+	);
 	const looking = $derived(
 		!book.summary && (book.details === 'pending' || book.details === 'missing')
 	);
@@ -76,10 +95,21 @@
 								>{` · ${edition}`}</span
 							>{/if}
 					</p>
+					{#if shown.isbn}
+						<p class="mt-0.5 font-mono text-xs text-ink/60 select-all">ISBN {shown.isbn}</p>
+					{/if}
+					{#if book.pocket}
+						<p class="mt-1 text-xs text-ink/60">
+							<span class="font-bold text-ink uppercase">Poche</span>
+							{pocket ? `${pocket} · ` : ''}<span class="font-mono whitespace-nowrap select-all"
+								>ISBN {book.pocket.isbn}</span
+							>
+						</p>
+					{/if}
 				</div>
 				{@render aside?.()}
 			</div>
-			{#if meta || book.price}
+			{#if meta || book.price || book.pocket?.price}
 				<div class="mt-2 flex flex-wrap gap-1.5">
 					{#if book.price}
 						<span
@@ -89,6 +119,14 @@
 							{formatPrice(book.price.amount)}{#if book.price.kind === 'ebook'}<span
 									class="font-medium">&nbsp;ebook</span
 								>{/if}
+						</span>
+					{/if}
+					{#if book.pocket?.price}
+						<span
+							class="chip bg-teal-soft"
+							title={`French retail price of the paperback · ${book.pocket.price.source}`}
+						>
+							{formatPrice(book.pocket.price.amount)}<span class="font-medium">&nbsp;poche</span>
 						</span>
 					{/if}
 					{@render meta?.()}

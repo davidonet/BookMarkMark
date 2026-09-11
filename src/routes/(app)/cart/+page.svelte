@@ -23,9 +23,12 @@
 	/** The one card whose "owned" or "later" form is open. */
 	let panel = $state<{ id: string; kind: 'owned' | 'later' } | null>(null);
 
-	// What the bookstore order should cost: paper editions with a known price.
-	const priced = $derived(data.books.filter((b) => b.price?.kind === 'print'));
-	const total = $derived(priced.reduce((sum, b) => sum + (b.price?.amount ?? 0), 0));
+	// What the bookstore order should cost: the paperback when there's one (as in the email),
+	// else the paper edition.
+	const orderPrice = (b: (typeof data.books)[number]) =>
+		b.pocket ? b.pocket.price : b.price?.kind === 'print' ? b.price : null;
+	const priced = $derived(data.books.filter((b) => orderPrice(b)));
+	const total = $derived(priced.reduce((sum, b) => sum + (orderPrice(b)?.amount ?? 0), 0));
 </script>
 
 <svelte:head>

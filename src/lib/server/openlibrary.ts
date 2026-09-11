@@ -50,6 +50,7 @@ export async function searchOpenLibrary(
 			isbn: null,
 			publisher: '',
 			language: '',
+			format: null,
 			editions: d.edition_count ?? null
 		}));
 	const total = json.numFound ?? hits.length;

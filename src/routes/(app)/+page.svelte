@@ -143,7 +143,8 @@
 				cover: h.cover,
 				isbn: h.isbn,
 				publisher: h.publisher,
-				language: h.language
+				language: h.language,
+				format: h.format
 			}))
 		)
 	);
@@ -314,6 +315,12 @@
 												hit.language === data.editionLang && 'bg-teal-soft'
 											]}
 											title="Edition language">{hit.language}</span
+										>
+									{/if}
+									{#if hit.format === 'ebook'}
+										<span
+											class="chip bg-orange-soft"
+											title="Ebook edition: the ISBN is not the paper one">ebook</span
 										>
 									{/if}
 									{#if hit.editions && hit.editions > 1}

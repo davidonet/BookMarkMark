@@ -4,9 +4,11 @@ import type {
 	DetailsState,
 	EditionLang,
 	EmailLang,
-	Price,
 	OwnedInfo,
+	PaperEdition,
+	PocketEdition,
 	PostponedInfo,
+	Price,
 	Status,
 	TagKind
 } from '$lib/types';
@@ -14,17 +16,24 @@ import type {
 // Collections with generated ids leave `_id` out: the driver adds it (WithId<…>) on reads.
 
 export interface BookDetails {
-	status: Exclude<DetailsState, 'missing'>;
+	status: Exclude<DetailsState, 'missing' | 'stale'>;
 	summary: string;
 	price: Price | null;
+	/** The paper edition found at the BnF; null when none, absent on lookups older than this. */
+	edition?: PaperEdition | null;
+	/** Its paperback (poche); null when none, absent on lookups older than this. */
+	pocket?: PocketEdition | null;
+	/** When the catch-up of those two started (see details.ts). */
+	editionsAt?: Date;
 	/** Web pages the summary was written from. */
 	sources: string[];
 	model: string | null;
 	at: Date;
 }
 
-/** A tracked book; `ref` is unique. */
-export interface BookDoc extends CatalogBook {
+/** A tracked book; `ref` is unique. `format` is missing on books added before it existed. */
+export interface BookDoc extends Omit<CatalogBook, 'format'> {
+	format?: CatalogBook['format'];
 	/** Normalized "title|first author": spots the same book across editions and catalogs. */
 	match: string;
 	/** Absent until the background lookup ran (see details.ts). */

@@ -11,12 +11,14 @@ as a fallback), Vercel.
 1. **Search**: look a book up on [Google Books](https://books.google.com) by title, author or both,
    with covers, publisher and language. Editions in your language come first (French by default,
    see Settings). Other editions of a book you already track are flagged, so nothing is added twice.
-   Tap results to select them, say where you heard about them, add them to the cart. Sources are
+   Ebook editions are flagged and listed after their paper twin. Tap results to select them, say
+   where you heard about them, add them to the cart. Sources are
    free text; new ones are remembered and offered in the dropdown next time.
 2. **Cart**: change the source (autosaved), or flag a book as **owned** (bought directly or
    through an online service) or **later** (a reason, remembered too, plus a free-text note).
-3. **Email**: prepare one email for your bookstore (English or French, with ISBNs when known), edit
-   it, open it in your mail app or copy it, then tap _I sent it_.
+3. **Email**: prepare one email for your bookstore (English or French). Each book comes with the
+   publisher, year and ISBN of its paper edition, or of its paperback (poche) when there's one.
+   Edit it, open it in your mail app or copy it, then tap _I sent it_.
 4. **Bookstore**: log the answer for each book: **confirmed** (then _Got it!_ once picked up)
    or **unavailable** (out of print, or not accessible to this bookstore).
 5. **Owned** and **Later**: your shelf, and the books postponed with their reason. A postponed book
@@ -39,7 +41,7 @@ pnpm dev
 | `APP_PIN`             | prod     | The 4-digit PIN. In `pnpm dev` it defaults to `1234` when unset.           |
 | `GOOGLEBOOKS_API_KEY` | no       | Google Books API key. Without it, search uses Open Library.                |
 | `OPENROUTER_API_KEY`  | no       | OpenRouter key for the French summaries (and prices the BnF lacks).        |
-| `SUMMARY_MODEL`       | no       | OpenRouter model for summaries (default `anthropic/claude-sonnet-5`).      |
+| `SUMMARY_MODEL`       | no       | OpenRouter model (default `mistralai/mistral-small-3.2-24b-instruct`).     |
 | `AUTH_SECRET`         | no       | Signs the session cookie (defaults to a value derived from `MONGODB_URI`). |
 
 Collections, indexes and the default sources / postpone reasons are created on first use.
@@ -55,6 +57,12 @@ If Google fails or the quota runs out, the search falls back to Open Library and
 
 Once a book is added, the app looks up in the background:
 
+- **the paper edition to order**: publisher, year and ISBN from the BnF. For an ebook, or a book
+  found without ISBN, the BnF's paper edition with the same title and author (same publisher
+  preferred), so the bookstore never gets an ebook ISBN;
+- **the paperback (poche)**: a BnF edition of the same book in a pocket collection (Folio, Livre de
+  Poche, J'ai lu…) or in the 18 cm format. When the BnF has none yet, a web search asks bookstore
+  sites; its ISBN is only kept if a page it read shows that ISBN as a poche (under a cent);
 - **the price**: the fixed French retail price of the paper edition, from the
   [BnF catalogue](https://catalogue.bnf.fr/api) (free, no key); otherwise from bookstore pages found
   by the web search below; otherwise the Google Play ebook price, labelled as such;

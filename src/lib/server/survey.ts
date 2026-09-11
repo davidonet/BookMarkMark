@@ -1,4 +1,5 @@
 import { env } from '$env/dynamic/private';
+import { POCKET_NAME, toIsbn10, validIsbn13 } from './bnf';
 import type { Price } from '$lib/types';
 
 /** Writes well in French and says nothing rather than invent; any OpenRouter model id works. */
@@ -10,11 +11,21 @@ Appuie-toi sur les résultats web et sur la description fournie. N'invente rien 
 Donne aussi le prix public en France (prix unique du livre, TTC, en euros) de l'édition papier : celle de l'ISBN indiqué si c'est un livre papier, sinon l'édition papier courante du même éditeur ; null si aucune source fiable ne l'indique.
 Réponds uniquement avec ce JSON : {"summary": string, "price_eur": number | null, "price_source": string | null}`;
 
+const POCKET_INSTRUCTIONS = `Tu cherches l'édition de poche française d'un livre (Folio, Le Livre de Poche, Pocket, J'ai lu, Points, 10/18, Babel, etc.).
+Appuie-toi uniquement sur les résultats web. N'invente rien : si aucune page ne donne l'ISBN d'une édition de poche de CE livre, réponds null.
+Réponds uniquement avec ce JSON : {"isbn": string | null, "collection": string | null, "price_eur": number | null, "source": string | null}`;
+
 export interface Survey {
 	summary: string;
 	price: Price | null;
 	sources: string[];
 	model: string;
+}
+
+export interface WebPocket {
+	isbn: string;
+	collection: string;
+	price: Price | null;
 }
 
 interface BookFacts {
@@ -47,11 +58,32 @@ const hostname = (value: unknown) => {
 	}
 };
 
-/** A short French overview (and the French price when found), grounded by a web search. */
-export async function frenchSurvey(book: BookFacts, description = ''): Promise<Survey | null> {
-	if (!env.OPENROUTER_API_KEY) return null;
-	const model = env.SUMMARY_MODEL || DEFAULT_MODEL;
+/** A French retail price given by the model, when plausible. */
+function webPrice(value: unknown, source: unknown): Price | null {
+	const amount = Number(value);
+	return amount > 0 && amount < 1000
+		? {
+				amount: Math.round(amount * 100) / 100,
+				currency: 'EUR',
+				kind: 'print',
+				source: hostname(source) ?? 'web'
+			}
+		: null;
+}
 
+/** A page the model read: its URL, and its URL, title and excerpt as one text. */
+interface Citation {
+	url: string;
+	text: string;
+}
+
+/** One completion grounded by a web search: the JSON answer, and the pages it was written from. */
+async function askWithWeb(
+	system: string,
+	user: string,
+	options: { maxTokens: number; temperature: number }
+) {
+	const model = env.SUMMARY_MODEL || DEFAULT_MODEL;
 	const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
 		method: 'POST',
 		headers: {
@@ -62,11 +94,11 @@ export async function frenchSurvey(book: BookFacts, description = ''): Promise<S
 		body: JSON.stringify({
 			model,
 			plugins: [{ id: 'web', engine: 'exa', max_results: 5 }],
-			temperature: 0.2,
-			max_tokens: 400,
+			temperature: options.temperature,
+			max_tokens: options.maxTokens,
 			messages: [
-				{ role: 'system', content: INSTRUCTIONS },
-				{ role: 'user', content: describe(book, description) }
+				{ role: 'system', content: system },
+				{ role: 'user', content: user }
 			]
 		}),
 		signal: AbortSignal.timeout(60_000)
@@ -76,25 +108,85 @@ export async function frenchSurvey(book: BookFacts, description = ''): Promise<S
 
 	const json = await res.json();
 	const message = json.choices?.[0]?.message ?? {};
-	const answer = JSON.parse(/\{[\s\S]*\}/.exec(String(message.content ?? ''))?.[0] ?? '{}');
-	const sources: string[] = (message.annotations ?? [])
-		.map((a: { url_citation?: { url?: string } }) => a.url_citation?.url)
-		.filter((url: unknown): url is string => typeof url === 'string' && url.startsWith('https://'))
-		.slice(0, 5);
+	const answer: Record<string, unknown> = JSON.parse(
+		/\{[\s\S]*\}/.exec(String(message.content ?? ''))?.[0] ?? '{}'
+	);
+	const citations: Citation[] = (message.annotations ?? [])
+		.map(
+			(a: { url_citation?: { url?: unknown; title?: unknown; content?: unknown } }) =>
+				a.url_citation
+		)
+		.filter(
+			(
+				c: { url?: unknown } | undefined
+			): c is { url: string; title?: unknown; content?: unknown } =>
+				typeof c?.url === 'string' && c.url.startsWith('https://')
+		)
+		.map((c: { url: string; title?: unknown; content?: unknown }) => ({
+			url: c.url,
+			text: [c.url, c.title, c.content].filter((part) => typeof part === 'string').join('\n')
+		}));
+	return { answer, citations, model: String(json.model ?? model) };
+}
 
-	const amount = Number(answer.price_eur);
+/** A short French overview (and the French price when found), grounded by a web search. */
+export async function frenchSurvey(book: BookFacts, description = ''): Promise<Survey | null> {
+	if (!env.OPENROUTER_API_KEY) return null;
+	const { answer, citations, model } = await askWithWeb(INSTRUCTIONS, describe(book, description), {
+		maxTokens: 400,
+		temperature: 0.2
+	});
 	return {
 		summary: typeof answer.summary === 'string' ? answer.summary.trim().slice(0, 600) : '',
-		price:
-			amount > 0 && amount < 1000
-				? {
-						amount: Math.round(amount * 100) / 100,
-						currency: 'EUR',
-						kind: 'print',
-						source: hostname(answer.price_source) ?? 'web'
-					}
-				: null,
-		sources,
-		model: json.model ?? model
+		price: webPrice(answer.price_eur, answer.price_source),
+		sources: citations.map((c) => c.url).slice(0, 5),
+		model
+	};
+}
+
+/** Lower-case letters and digits only: "L'Anomalie" → "lanomalie". */
+const squash = (text: string) =>
+	text
+		.normalize('NFD')
+		.replace(/\p{M}/gu, '')
+		.toLowerCase()
+		.replace(/[^\p{L}\p{N}]+/gu, '');
+
+/**
+ * The ISBN of the book's paperback, as found on bookstore sites. Only trusted when a page the
+ * model read shows that very ISBN, next to the title and to "poche" or a pocket collection.
+ */
+export async function pocketOnWeb(book: {
+	title: string;
+	authors: string[];
+}): Promise<WebPocket | null> {
+	if (!env.OPENROUTER_API_KEY) return null;
+	const { answer, citations } = await askWithWeb(
+		POCKET_INSTRUCTIONS,
+		`${book.title} — ${book.authors.join(', ')} : édition de poche, ISBN`,
+		{ maxTokens: 200, temperature: 0 }
+	);
+	const isbn = typeof answer.isbn === 'string' ? validIsbn13(answer.isbn) : null;
+	if (!isbn) return null;
+
+	const forms = [isbn, toIsbn10(isbn)].filter((form): form is string => !!form);
+	const words = book.title
+		.split(/[^\p{L}\p{N}]+/u)
+		.map(squash)
+		.filter((word) => word.length > 2);
+	const shown = citations.find(({ text }) => {
+		const digits = text.replace(/(?<=\d)[-\s.](?=\d)/g, '');
+		const letters = squash(text);
+		return (
+			forms.some((form) => digits.includes(form)) &&
+			words.every((word) => letters.includes(word)) &&
+			POCKET_NAME.test(text)
+		);
+	});
+	if (!shown) return null;
+	return {
+		isbn,
+		collection: typeof answer.collection === 'string' ? answer.collection.trim().slice(0, 80) : '',
+		price: webPrice(answer.price_eur, answer.source ?? shown.url)
 	};
 }
