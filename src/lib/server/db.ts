@@ -1,0 +1,94 @@
+import { MongoClient, type Collection } from 'mongodb';
+import { attachDatabasePool } from '@vercel/functions';
+import { env } from '$env/dynamic/private';
+import type { AttemptDoc, BookDoc, RequestDoc, SettingsDoc, TagDoc } from './models';
+
+export interface Collections {
+	books: Collection<BookDoc>;
+	tags: Collection<TagDoc>;
+	requests: Collection<RequestDoc>;
+	settings: Collection<SettingsDoc>;
+	attempts: Collection<AttemptDoc>;
+}
+
+const DEFAULT_SOURCES = ['Friend', 'Radio', 'Newsletter', 'Podcast'];
+const DEFAULT_REASONS = [
+	'Waiting for the paperback',
+	'Too pricey for now',
+	'Try the library first',
+	'Not the right moment'
+];
+
+// Survives dev-server module reloads and is reused across requests on a warm instance.
+const g = globalThis as typeof globalThis & { __bookmarkmark?: Promise<Collections> };
+
+async function connect(): Promise<Collections> {
+	if (!env.MONGODB_URI) throw new Error('MONGODB_URI is not set');
+
+	const client = new MongoClient(env.MONGODB_URI, { appName: 'bookmarkmark', maxPoolSize: 10 });
+	// Lets Vercel Fluid compute release idle connections before an instance is suspended.
+	attachDatabasePool(client);
+	await client.connect();
+
+	const db = client.db(env.MONGO_DB || 'bookmarkmark');
+	const c: Collections = {
+		books: db.collection<BookDoc>('books'),
+		tags: db.collection<TagDoc>('tags'),
+		requests: db.collection<RequestDoc>('requests'),
+		settings: db.collection<SettingsDoc>('settings'),
+		attempts: db.collection<AttemptDoc>('login_attempts')
+	};
+
+	await Promise.all([
+		c.books.createIndexes([
+			{ key: { olKey: 1 }, name: 'olKey_unique', unique: true },
+			{ key: { status: 1, updatedAt: -1 }, name: 'status_updatedAt' }
+		]),
+		c.tags.createIndex({ kind: 1, key: 1 }, { name: 'kind_key_unique', unique: true }),
+		c.requests.createIndex({ createdAt: -1 }, { name: 'createdAt' }),
+		c.attempts.createIndex({ expiresAt: 1 }, { name: 'ttl', expireAfterSeconds: 0 })
+	]);
+	await seedOnce(c);
+	return c;
+}
+
+/** First run only: create the settings document and pre-fill the dropdowns. */
+async function seedOnce(c: Collections) {
+	const now = new Date();
+	const res = await c.settings.updateOne(
+		{ _id: 'app' },
+		{
+			$setOnInsert: {
+				bookstoreName: '',
+				bookstoreEmail: '',
+				myName: '',
+				emailLang: 'en',
+				createdAt: now
+			}
+		},
+		{ upsert: true }
+	);
+	if (!res.upsertedCount) return;
+
+	const defaults = [
+		...DEFAULT_SOURCES.map((name) => ({ kind: 'source' as const, name })),
+		...DEFAULT_REASONS.map((name) => ({ kind: 'reason' as const, name }))
+	];
+	await c.tags.bulkWrite(
+		defaults.map(({ kind, name }) => ({
+			updateOne: {
+				filter: { kind, key: name.toLocaleLowerCase() },
+				update: { $setOnInsert: { name, uses: 0, lastUsedAt: now, createdAt: now } },
+				upsert: true
+			}
+		}))
+	);
+}
+
+export function collections(): Promise<Collections> {
+	g.__bookmarkmark ??= connect().catch((err) => {
+		g.__bookmarkmark = undefined;
+		throw err;
+	});
+	return g.__bookmarkmark;
+}

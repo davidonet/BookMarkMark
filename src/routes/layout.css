@@ -1,0 +1,173 @@
+@import 'tailwindcss';
+
+/*
+ * Neurath X (Studio René Bieder) is a commercial typeface and is not bundled.
+ * It is used automatically when installed on the device. With a webfont licence,
+ * drop the files in static/fonts/ and uncomment:
+ *
+ * @font-face { font-family: 'Neurath X'; src: url('/fonts/NeurathX-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+ * @font-face { font-family: 'Neurath X'; src: url('/fonts/NeurathX-Bold.woff2') format('woff2'); font-weight: 700; font-display: swap; }
+ * @font-face { font-family: 'Neurath X Mono'; src: url('/fonts/NeurathXMono-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+ *
+ * Until then: Jost (a free Futura revival) and Space Mono stand in.
+ */
+
+@theme {
+	--font-sans:
+		'Neurath X', 'Jost Variable', 'Jost', 'Futura PT', Futura, ui-sans-serif, system-ui, sans-serif;
+	--font-mono: 'Neurath X Mono', 'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+	--color-ink: #1d1a16;
+	--color-cream: #fff3dc;
+	--color-cream-deep: #f7e2b8;
+	--color-paper: #fffaf0;
+	--color-orange: #ff6b2c;
+	--color-orange-soft: #ffc6a8;
+	--color-violet: #9d7cff;
+	--color-violet-deep: #5b2ee0;
+	--color-violet-soft: #ddd1ff;
+	--color-teal: #17b8a6;
+	--color-teal-deep: #0c7c70;
+	--color-teal-soft: #b8eee6;
+
+	--shadow-brutal-xs: 2px 2px 0 0 var(--color-ink);
+	--shadow-brutal-sm: 3px 3px 0 0 var(--color-ink);
+	--shadow-brutal: 5px 5px 0 0 var(--color-ink);
+	--shadow-brutal-lg: 8px 8px 0 0 var(--color-ink);
+
+	--animate-shake: shake 0.42s ease-in-out;
+	--animate-pop: pop 0.25s ease-out;
+
+	@keyframes shake {
+		0%,
+		100% {
+			transform: translateX(0);
+		}
+		20% {
+			transform: translateX(-9px) rotate(-1deg);
+		}
+		40% {
+			transform: translateX(9px) rotate(1deg);
+		}
+		60% {
+			transform: translateX(-5px);
+		}
+		80% {
+			transform: translateX(5px);
+		}
+	}
+	@keyframes pop {
+		0% {
+			transform: scale(0.6);
+		}
+		70% {
+			transform: scale(1.15);
+		}
+		100% {
+			transform: scale(1);
+		}
+	}
+}
+
+@layer base {
+	html {
+		-webkit-tap-highlight-color: transparent;
+		scroll-padding-top: 5rem;
+	}
+	body {
+		@apply bg-cream font-sans text-ink antialiased;
+		/* dotted-paper background */
+		background-image: radial-gradient(rgb(29 26 22 / 0.13) 1.2px, transparent 1.2px);
+		background-size: 20px 20px;
+	}
+	::selection {
+		background: var(--color-violet);
+		color: var(--color-ink);
+	}
+	:focus-visible {
+		outline: 3px solid var(--color-violet-deep);
+		outline-offset: 2px;
+	}
+	h1,
+	h2,
+	h3 {
+		text-wrap: balance;
+	}
+	input[type='search']::-webkit-search-cancel-button {
+		cursor: pointer;
+	}
+}
+
+@layer components {
+	.card {
+		@apply rounded-2xl border-[3px] border-ink bg-paper shadow-brutal;
+	}
+
+	.btn {
+		@apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border-[3px] border-ink bg-paper px-4 py-2 text-sm font-bold tracking-wide whitespace-nowrap uppercase shadow-brutal-sm select-none;
+		transition:
+			transform 80ms ease-out,
+			box-shadow 80ms ease-out,
+			background-color 150ms;
+	}
+	@media (hover: hover) {
+		.btn:hover:not(:disabled) {
+			transform: translate(-1px, -1px);
+			box-shadow: var(--shadow-brutal);
+		}
+	}
+	.btn:active:not(:disabled) {
+		transform: translate(3px, 3px);
+		box-shadow: none;
+	}
+	.btn:disabled {
+		@apply cursor-not-allowed opacity-50;
+	}
+	.btn-sm {
+		@apply gap-1.5 rounded-lg px-2.5 py-1.5 text-xs shadow-brutal-xs;
+	}
+	.btn-lg {
+		@apply px-6 py-3.5 text-base;
+	}
+	.btn-ghost {
+		@apply border-transparent bg-transparent shadow-none;
+	}
+	@media (hover: hover) {
+		.btn-ghost:hover:not(:disabled) {
+			@apply border-ink bg-paper;
+		}
+	}
+
+	.input {
+		@apply w-full rounded-xl border-[3px] border-ink bg-paper px-3.5 py-2.5 text-base placeholder:text-ink/40;
+		box-shadow: inset 3px 3px 0 0 rgb(29 26 22 / 0.07);
+	}
+	.input:focus {
+		outline: none;
+		box-shadow: var(--shadow-brutal-sm);
+	}
+
+	.chip {
+		@apply inline-flex items-center gap-1 rounded-full border-2 border-ink bg-paper px-2.5 py-0.5 text-xs leading-5 font-bold;
+	}
+
+	/* A radio/checkbox styled as a big toggle: <label class="choice"><input class="sr-only" …> */
+	.choice {
+		@apply flex cursor-pointer items-center gap-2 rounded-xl border-[3px] border-ink bg-paper px-3 py-2.5 text-sm font-bold shadow-brutal-xs has-checked:shadow-none has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-violet-deep;
+	}
+
+	.label {
+		@apply font-mono text-[0.68rem] font-bold tracking-[0.12em] uppercase;
+	}
+
+	/* Instant feedback while a form is being saved (see markPending in $lib/enhance). */
+	form[data-pending] {
+		cursor: progress;
+	}
+	form[data-pending] button {
+		@apply pointer-events-none opacity-60;
+	}
+	article:has(form[data-pending]) {
+		@apply opacity-70 transition-opacity;
+	}
+}
