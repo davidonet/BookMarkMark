@@ -2,7 +2,7 @@ import { env } from '$env/dynamic/private';
 import type { Price } from '$lib/types';
 
 /** Writes well in French and says nothing rather than invent; any OpenRouter model id works. */
-const DEFAULT_MODEL = 'anthropic/claude-sonnet-5';
+const DEFAULT_MODEL = 'mistralai/mistral-small-3.2-24b-instruct';
 
 const INSTRUCTIONS = `Tu aides un lecteur à se souvenir des livres qu'on lui a conseillés.
 Pour le livre indiqué, écris un petit survol en français : 2 ou 3 phrases (60 mots au plus), sans divulgâcher, qui disent de quoi parle le livre et de quel genre il est. Style simple et vivant.
