@@ -14,6 +14,7 @@
 	import Combobox from '$lib/components/Combobox.svelte';
 	import Empty from '$lib/components/Empty.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
+	import RefreshWhilePending from '$lib/components/RefreshWhilePending.svelte';
 	import StatusBadge from '$lib/components/StatusBadge.svelte';
 	import { markPending } from '$lib/enhance';
 	import { ago, authorsLine, plural } from '$lib/format';
@@ -23,7 +24,8 @@
 		type SearchHit,
 		type SearchMode,
 		type SearchPage,
-		type Status
+		type Status,
+		isLookingUp
 	} from '$lib/types';
 
 	let { data } = $props();
@@ -180,6 +182,7 @@
 	<title>{data.q ? `${data.q} · ` : ''}Search · BookMarkMark</title>
 </svelte:head>
 
+<RefreshWhilePending active={data.recent.some(isLookingUp)} />
 <PageHeader title="Heard of a book?" kicker="Step 1 · Find it" tone="orange" />
 
 <form

@@ -1,6 +1,7 @@
 import type { Actions, PageServerLoad } from './$types';
 import { bookActions } from '$lib/server/actions';
 import { listBooks } from '$lib/server/books';
+import { lookUpMissing } from '$lib/server/details';
 import { listTags } from '$lib/server/tags';
 
 export const load: PageServerLoad = async () => {
@@ -9,6 +10,7 @@ export const load: PageServerLoad = async () => {
 		listTags('source'),
 		listTags('reason')
 	]);
+	lookUpMissing(books);
 	return { books, sources, reasons };
 };
 

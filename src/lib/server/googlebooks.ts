@@ -103,6 +103,38 @@ async function fetchVolumes(
 	}
 }
 
+/** Publisher description and Google Play (ebook) price of one edition, for the details lookup. */
+export async function googleVolumeDetails(id: string, apiKey: string) {
+	const url = new URL(`https://www.googleapis.com/books/v1/volumes/${encodeURIComponent(id)}`);
+	url.searchParams.set('country', 'FR');
+	url.searchParams.set('fields', 'volumeInfo(description,language),saleInfo(retailPrice)');
+	url.searchParams.set('key', apiKey);
+	const res = await fetch(url, { signal: AbortSignal.timeout(8_000) });
+	if (!res.ok) throw new CatalogError(errorMessage(res.status, await res.text()));
+	const json = (await res.json()) as {
+		volumeInfo?: { description?: string; language?: string };
+		saleInfo?: { retailPrice?: { amount?: number; currencyCode?: string } };
+	};
+	const retail = json.saleInfo?.retailPrice;
+	return {
+		// Descriptions come with some HTML.
+		description: (json.volumeInfo?.description ?? '')
+			.replace(/<[^>]+>/g, ' ')
+			.replace(/\s+/g, ' ')
+			.trim(),
+		language: json.volumeInfo?.language ?? '',
+		ebookPrice:
+			retail?.currencyCode === 'EUR' && retail.amount
+				? {
+						amount: retail.amount,
+						currency: 'EUR' as const,
+						kind: 'ebook' as const,
+						source: 'Google Play'
+					}
+				: null
+	};
+}
+
 /**
  * With a preferred language, the first page also asks for (up to 40) editions in that language,
  * and lists the preferred-language editions first. Later pages continue the "all" list.

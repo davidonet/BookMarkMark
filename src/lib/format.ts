@@ -24,5 +24,10 @@ export function ago(date: Date | string | null | undefined): string {
 	return 'just now';
 }
 
+const euros = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
+
+/** "19,00 €" */
+export const formatPrice = (amount: number) => euros.format(amount);
+
 export const plural = (n: number, word: string, many = `${word}s`) =>
 	`${n} ${n === 1 ? word : many}`;

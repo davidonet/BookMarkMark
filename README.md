@@ -38,6 +38,8 @@ pnpm dev
 | `MONGO_DB`            | yes      | Database name                                                              |
 | `APP_PIN`             | prod     | The 4-digit PIN. In `pnpm dev` it defaults to `1234` when unset.           |
 | `GOOGLEBOOKS_API_KEY` | no       | Google Books API key. Without it, search uses Open Library.                |
+| `OPENROUTER_API_KEY`  | no       | OpenRouter key for the French summaries (and prices the BnF lacks).        |
+| `SUMMARY_MODEL`       | no       | OpenRouter model for summaries (default `anthropic/claude-sonnet-5`).      |
 | `AUTH_SECRET`         | no       | Signs the session cookie (defaults to a value derived from `MONGODB_URI`). |
 
 Collections, indexes and the default sources / postpone reasons are created on first use.
@@ -48,6 +50,19 @@ Google Books needs a free API key (requests without one are refused): in the Goo
 enable the **Books API**, create an API key and restrict it to that API. The default quota is
 1,000 requests a day, free; a search costs 2 requests (all editions + editions in your language).
 If Google fails or the quota runs out, the search falls back to Open Library and says so.
+
+### Price and French summary
+
+Once a book is added, the app looks up in the background:
+
+- **the price**: the fixed French retail price of the paper edition, from the
+  [BnF catalogue](https://catalogue.bnf.fr/api) (free, no key); otherwise from bookstore pages found
+  by the web search below; otherwise the Google Play ebook price, labelled as such;
+- **a short French overview** (2–3 sentences, no spoilers), written by an LLM through
+  [OpenRouter](https://openrouter.ai) with web search, so it relies on real pages rather than
+  memory, and stays empty rather than inventing. About 1–2 cents a book.
+
+Books added before these lookups existed catch up a few at a time as you browse your lists.
 
 ## Deploy
 

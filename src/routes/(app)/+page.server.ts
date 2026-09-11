@@ -2,6 +2,7 @@ import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { field, parseNewBooks } from '$lib/server/actions';
 import { addToCart, recentBooks } from '$lib/server/books';
+import { lookUpMissing } from '$lib/server/details';
 import { parseMode, preferredProvider, search } from '$lib/server/catalog';
 import { getSettings } from '$lib/server/settings';
 import { listTags } from '$lib/server/tags';
@@ -36,6 +37,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		q ? ([] as Book[]) : recentBooks(8),
 		results
 	]);
+	lookUpMissing(recent);
 	return { q, mode, provider, editionLang, sources, recent, search: found };
 };
 

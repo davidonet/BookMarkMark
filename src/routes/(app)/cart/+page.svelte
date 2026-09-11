@@ -12,20 +12,27 @@
 	import LaterForm from '$lib/components/LaterForm.svelte';
 	import OwnedForm from '$lib/components/OwnedForm.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
+	import RefreshWhilePending from '$lib/components/RefreshWhilePending.svelte';
 	import SourceEditor from '$lib/components/SourceEditor.svelte';
 	import { withToast } from '$lib/enhance';
-	import { ago, plural } from '$lib/format';
+	import { ago, formatPrice, plural } from '$lib/format';
+	import { isLookingUp } from '$lib/types';
 
 	let { data } = $props();
 
 	/** The one card whose "owned" or "later" form is open. */
 	let panel = $state<{ id: string; kind: 'owned' | 'later' } | null>(null);
+
+	// What the bookstore order should cost: paper editions with a known price.
+	const priced = $derived(data.books.filter((b) => b.price?.kind === 'print'));
+	const total = $derived(priced.reduce((sum, b) => sum + (b.price?.amount ?? 0), 0));
 </script>
 
 <svelte:head>
 	<title>Cart · BookMarkMark</title>
 </svelte:head>
 
+<RefreshWhilePending active={data.books.some(isLookingUp)} />
 <PageHeader title="Cart" kicker="Step 2 · Sort it out" tone="violet">
 	{#if data.books.length}
 		<a href={resolve('/cart/email')} class="btn bg-orange"
@@ -101,6 +108,16 @@
 					? `these ${data.books.length} books`
 					: 'this book'}.
 			</p>
+			{#if priced.length}
+				<p class="mt-1 text-sm font-bold">
+					≈ {formatPrice(total)}
+					<span class="font-normal text-ink/70">
+						{priced.length < data.books.length
+							? `(price known for ${priced.length} of ${data.books.length})`
+							: 'at the French retail price'}
+					</span>
+				</p>
+			{/if}
 		</div>
 		<a href={resolve('/cart/email')} class="btn btn-lg bg-orange"
 			><Mail class="size-5" /> Prepare email</a

@@ -1,8 +1,10 @@
 import type { ObjectId } from 'mongodb';
 import type {
 	CatalogBook,
+	DetailsState,
 	EditionLang,
 	EmailLang,
+	Price,
 	OwnedInfo,
 	PostponedInfo,
 	Status,
@@ -11,10 +13,22 @@ import type {
 
 // Collections with generated ids leave `_id` out: the driver adds it (WithId<…>) on reads.
 
+export interface BookDetails {
+	status: Exclude<DetailsState, 'missing'>;
+	summary: string;
+	price: Price | null;
+	/** Web pages the summary was written from. */
+	sources: string[];
+	model: string | null;
+	at: Date;
+}
+
 /** A tracked book; `ref` is unique. */
 export interface BookDoc extends CatalogBook {
 	/** Normalized "title|first author": spots the same book across editions and catalogs. */
 	match: string;
+	/** Absent until the background lookup ran (see details.ts). */
+	details?: BookDetails;
 	source: string;
 	status: Status;
 	owned: OwnedInfo | null;

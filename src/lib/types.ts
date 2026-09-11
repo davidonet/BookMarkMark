@@ -39,8 +39,27 @@ export interface CatalogBook {
 	language: string;
 }
 
+export interface Price {
+	amount: number;
+	currency: 'EUR';
+	/** `print`: the fixed French retail price of the paper edition; `ebook`: Google Play. */
+	kind: 'print' | 'ebook';
+	/** Where it comes from: "BnF", a bookstore's domain, "Google Play". */
+	source: string;
+}
+
+/** Summary and price are looked up in the background once a book is added. */
+export type DetailsState = 'missing' | 'pending' | 'done' | 'failed';
+
+export const isLookingUp = (book: { details: DetailsState }) =>
+	book.details === 'pending' || book.details === 'missing';
+
 export interface Book extends CatalogBook {
 	id: string;
+	/** Short French overview, '' when unknown. */
+	summary: string;
+	price: Price | null;
+	details: DetailsState;
 	source: string;
 	status: Status;
 	owned: OwnedInfo | null;

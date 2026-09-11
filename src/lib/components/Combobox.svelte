@@ -168,7 +168,7 @@
 				role="option"
 				aria-selected={i === active}
 				class={[
-					'flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 font-medium',
+					'flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 font-medium pointer-coarse:py-3',
 					i === active ? 'bg-orange' : 'hover:bg-cream'
 				]}
 				onclick={() => commit(item.value)}

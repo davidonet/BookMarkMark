@@ -2,8 +2,13 @@ import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { bookActions, field, fieldList } from '$lib/server/actions';
 import { bookstoreBoard, confirmBooks, pickUp, postpone } from '$lib/server/books';
+import { lookUpMissing } from '$lib/server/details';
 
-export const load: PageServerLoad = async () => ({ board: await bookstoreBoard() });
+export const load: PageServerLoad = async () => {
+	const board = await bookstoreBoard();
+	lookUpMissing([...board.waiting.flatMap((g) => g.books), ...board.confirmed]);
+	return { board };
+};
 
 export const actions = {
 	/** One or several `id`s: the bookstore can get them. */

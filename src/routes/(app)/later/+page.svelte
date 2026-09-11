@@ -9,9 +9,10 @@
 	import Empty from '$lib/components/Empty.svelte';
 	import OwnedForm from '$lib/components/OwnedForm.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
+	import RefreshWhilePending from '$lib/components/RefreshWhilePending.svelte';
 	import { withToast } from '$lib/enhance';
 	import { ago } from '$lib/format';
-	import type { PostponeKind } from '$lib/types';
+	import { isLookingUp, type PostponeKind } from '$lib/types';
 
 	let { data } = $props();
 
@@ -42,6 +43,7 @@
 	<title>Later · BookMarkMark</title>
 </svelte:head>
 
+<RefreshWhilePending active={data.books.some(isLookingUp)} />
 <PageHeader title="Later" kicker="Not now, not never" tone="lilac" />
 
 {#if data.books.length === 0}

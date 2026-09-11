@@ -11,9 +11,11 @@
 	import BookCard from '$lib/components/BookCard.svelte';
 	import Empty from '$lib/components/Empty.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
+	import RefreshWhilePending from '$lib/components/RefreshWhilePending.svelte';
 	import UnavailableForm from '$lib/components/UnavailableForm.svelte';
 	import { withToast } from '$lib/enhance';
 	import { ago, plural } from '$lib/format';
+	import { isLookingUp } from '$lib/types';
 
 	let { data } = $props();
 
@@ -25,6 +27,11 @@
 	<title>Bookstore · BookMarkMark</title>
 </svelte:head>
 
+<RefreshWhilePending
+	active={[...data.board.waiting.flatMap((g) => g.books), ...data.board.confirmed].some(
+		isLookingUp
+	)}
+/>
 <PageHeader title="Bookstore" kicker="Step 4 · Log the answer" tone="teal" />
 
 {#if nothing}

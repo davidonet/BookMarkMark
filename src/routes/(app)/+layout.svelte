@@ -110,7 +110,7 @@
 					<a
 						href={item.href}
 						aria-current={isActive(item.href) ? 'page' : undefined}
-						class="flex flex-col items-center gap-1 pt-2 pb-2.5 text-[0.62rem] font-bold tracking-wide uppercase"
+						class="flex flex-col items-center gap-1 pt-2 pb-2.5 text-[0.68rem] font-bold tracking-wide uppercase"
 					>
 						<span
 							class={[

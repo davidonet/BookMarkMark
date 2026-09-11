@@ -1,5 +1,6 @@
 import { MongoServerError, ObjectId, type Filter, type Sort, type WithId } from 'mongodb';
 import { collections } from './db';
+import { lookUpDetails } from './details';
 import { matchKey } from './match';
 import { cleanText, rememberTag } from './tags';
 import type { BookDoc } from './models';
@@ -24,6 +25,9 @@ export function toBook(doc: WithId<BookDoc>): Book {
 		isbn: doc.isbn ?? null,
 		publisher: doc.publisher ?? '',
 		language: doc.language ?? '',
+		summary: doc.details?.summary ?? '',
+		price: doc.details?.price ?? null,
+		details: doc.details?.status ?? 'missing',
 		source: doc.source ?? '',
 		status: doc.status,
 		owned: doc.owned ?? null,
@@ -98,6 +102,7 @@ export async function addToCart(items: CatalogBook[], rawSource: string) {
 	const source = await rememberTag('source', rawSource);
 	const now = new Date();
 	const result = { added: 0, revived: 0, skipped: 0 };
+	const inserted: ObjectId[] = [];
 
 	for (const item of items) {
 		const match = matchKey(item.title, item.authors);
@@ -115,7 +120,7 @@ export async function addToCart(items: CatalogBook[], rawSource: string) {
 			result.skipped++;
 		} else {
 			try {
-				await books.insertOne({
+				const { insertedId } = await books.insertOne({
 					...item,
 					match,
 					source,
@@ -128,6 +133,7 @@ export async function addToCart(items: CatalogBook[], rawSource: string) {
 					requestedAt: null,
 					confirmedAt: null
 				});
+				inserted.push(insertedId);
 				result.added++;
 			} catch (err) {
 				if (err instanceof MongoServerError && err.code === 11000) result.skipped++;
@@ -135,6 +141,7 @@ export async function addToCart(items: CatalogBook[], rawSource: string) {
 			}
 		}
 	}
+	lookUpDetails(inserted);
 	return result;
 }
 

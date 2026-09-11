@@ -7,9 +7,10 @@
 	import ConfirmButton from '$lib/components/ConfirmButton.svelte';
 	import Empty from '$lib/components/Empty.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
+	import RefreshWhilePending from '$lib/components/RefreshWhilePending.svelte';
 	import { withToast } from '$lib/enhance';
 	import { ago, plural } from '$lib/format';
-	import { OWNED_VIA_LABEL, type OwnedVia } from '$lib/types';
+	import { OWNED_VIA_LABEL, type OwnedVia, isLookingUp } from '$lib/types';
 
 	let { data } = $props();
 
@@ -40,6 +41,7 @@
 	<title>Owned · BookMarkMark</title>
 </svelte:head>
 
+<RefreshWhilePending active={data.books.some(isLookingUp)} />
 <PageHeader title="Owned" kicker="Your shelf" tone="ink" />
 
 {#if data.books.length === 0}

@@ -73,6 +73,8 @@
 	html {
 		-webkit-tap-highlight-color: transparent;
 		scroll-padding-top: 5rem;
+		/* no double-tap zoom delay on phones */
+		touch-action: manipulation;
 	}
 	body {
 		@apply bg-cream font-sans text-ink antialiased;
@@ -128,6 +130,15 @@
 	}
 	.btn-lg {
 		@apply px-6 py-3.5 text-base;
+	}
+	/* Fingers need bigger targets than mouse pointers. */
+	@media (pointer: coarse) {
+		.btn-sm {
+			@apply min-h-10 px-3 text-[0.8rem];
+		}
+		.btn-sm.btn-ghost {
+			@apply min-w-10;
+		}
 	}
 	.btn-ghost {
 		@apply border-transparent bg-transparent shadow-none;
