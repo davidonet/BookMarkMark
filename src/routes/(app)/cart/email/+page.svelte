@@ -108,7 +108,7 @@
 								onchange={() => toggle(book.id)}
 								class="size-5 shrink-0 accent-ink"
 							/>
-							<BookCover coverId={book.coverId} title={book.title} class="w-9" />
+							<BookCover cover={book.cover} title={book.title} class="w-9" />
 							<span class="min-w-0">
 								<span class="block leading-tight font-bold">{book.title}</span>
 								<span class="block text-sm text-ink/70">{authorsLine(book.authors)}</span>

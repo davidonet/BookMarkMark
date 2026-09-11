@@ -1,13 +1,12 @@
 <script lang="ts">
-	import { coverUrl } from '$lib/types';
-
 	interface Props {
-		coverId: number | null;
+		/** Thumbnail URL from the catalog. */
+		cover: string | null;
 		title: string;
 		class?: string;
 	}
 
-	let { coverId, title, class: className = '' }: Props = $props();
+	let { cover, title, class: className = '' }: Props = $props();
 
 	const TONES = [
 		'bg-orange',
@@ -32,12 +31,13 @@
 		className
 	]}
 >
-	{#if coverId && !failed}
+	{#if cover && !failed}
 		<img
-			src={coverUrl(coverId)}
+			src={cover}
 			alt=""
 			loading="lazy"
 			decoding="async"
+			referrerpolicy="no-referrer"
 			class="size-full object-cover"
 			onerror={() => (failed = true)}
 		/>

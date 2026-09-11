@@ -1,16 +1,18 @@
 import { collections } from './db';
-import type { Settings } from '$lib/types';
+import type { EditionLang, Settings } from '$lib/types';
 
-const DEFAULTS: Settings = { bookstoreName: '', bookstoreEmail: '', myName: '', emailLang: 'en' };
+export const parseEditionLang = (value: unknown): EditionLang =>
+	value === 'fr' || value === 'en' || value === '' ? value : 'fr';
 
 export async function getSettings(): Promise<Settings> {
 	const { settings } = await collections();
 	const doc = await settings.findOne({ _id: 'app' });
 	return {
-		bookstoreName: doc?.bookstoreName ?? DEFAULTS.bookstoreName,
-		bookstoreEmail: doc?.bookstoreEmail ?? DEFAULTS.bookstoreEmail,
-		myName: doc?.myName ?? DEFAULTS.myName,
-		emailLang: doc?.emailLang === 'fr' ? 'fr' : 'en'
+		bookstoreName: doc?.bookstoreName ?? '',
+		bookstoreEmail: doc?.bookstoreEmail ?? '',
+		myName: doc?.myName ?? '',
+		emailLang: doc?.emailLang === 'fr' ? 'fr' : 'en',
+		editionLang: parseEditionLang(doc?.editionLang)
 	};
 }
 

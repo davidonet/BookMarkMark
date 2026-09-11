@@ -18,7 +18,13 @@
 	import { markPending } from '$lib/enhance';
 	import { ago, authorsLine, plural } from '$lib/format';
 	import { toast } from '$lib/toast.svelte';
-	import type { SearchHit, SearchMode, SearchPage, Status } from '$lib/types';
+	import {
+		PROVIDER_LABEL,
+		type SearchHit,
+		type SearchMode,
+		type SearchPage,
+		type Status
+	} from '$lib/types';
 
 	let { data } = $props();
 
@@ -81,10 +87,10 @@
 	const resultsKey = $derived(`${data.mode}|${data.q}`);
 	const extra = $derived(more?.key === resultsKey ? more : null);
 	const hits = $derived.by(() => {
-		// Open Library pages can overlap: keep the first occurrence of each work.
+		// Catalog pages can overlap: keep the first occurrence of each book.
 		const seen: Record<string, true> = {};
 		return [...(data.search?.hits ?? []), ...(extra?.hits ?? [])].filter((h) =>
-			seen[h.olKey] ? false : (seen[h.olKey] = true)
+			seen[h.ref] ? false : (seen[h.ref] = true)
 		);
 	});
 	const hasMore = $derived(extra ? extra.hasMore : (data.search?.hasMore ?? false));
@@ -95,13 +101,18 @@
 		const page = (extra?.page ?? 1) + 1;
 		loadingMore = true;
 		try {
-			const params = new URLSearchParams({ q: data.q, by: data.mode, page: String(page) });
+			const params = new URLSearchParams({
+				q: data.q,
+				by: data.mode,
+				page: String(page),
+				from: data.search?.provider ?? data.provider
+			});
 			const res = await fetch(`/api/search?${params}`);
-			if (!res.ok) throw new Error(String(res.status));
-			const next = (await res.json()) as SearchPage;
+			const next = (await res.json()) as SearchPage & { message?: string };
+			if (!res.ok) throw new Error(next.message);
 			more = { key, hits: [...previous, ...next.hits], page, hasMore: next.hasMore };
-		} catch {
-			toast('Could not load more results.', 'error');
+		} catch (err) {
+			toast((err instanceof Error && err.message) || 'Could not load more results.', 'error');
 		} finally {
 			loadingMore = false;
 		}
@@ -112,22 +123,25 @@
 	const justAdded = new SvelteMap<string, Status>();
 	let source = $state('');
 
-	const statusOf = (hit: SearchHit) => justAdded.get(hit.olKey) ?? hit.status;
+	const statusOf = (hit: SearchHit) => justAdded.get(hit.ref) ?? hit.status;
 
 	function toggle(hit: SearchHit) {
-		if (selected.has(hit.olKey)) selected.delete(hit.olKey);
-		else selected.set(hit.olKey, hit);
+		if (selected.has(hit.ref)) selected.delete(hit.ref);
+		else selected.set(hit.ref, hit);
 	}
 
 	const selectedJson = $derived(
 		JSON.stringify(
-			[...selected.values()].map(({ olKey, title, subtitle, authors, year, coverId }) => ({
-				olKey,
-				title,
-				subtitle,
-				authors,
-				year,
-				coverId
+			[...selected.values()].map((h) => ({
+				ref: h.ref,
+				title: h.title,
+				subtitle: h.subtitle,
+				authors: h.authors,
+				year: h.year,
+				cover: h.cover,
+				isbn: h.isbn,
+				publisher: h.publisher,
+				language: h.language
 			}))
 		)
 	);
@@ -190,7 +204,7 @@
 					schedule();
 				}}
 				placeholder="Title, author, or both…"
-				aria-label="Search Open Library"
+				aria-label="Search books"
 				autocomplete="off"
 				enterkeyhint="search"
 				class="input h-14 pl-12 text-lg shadow-brutal-sm"
@@ -223,7 +237,9 @@
 				{m.label}
 			</label>
 		{/each}
-		<span class="label ml-auto text-ink/55">via Open Library</span>
+		<span class="label ml-auto text-ink/55">
+			via {PROVIDER_LABEL[data.search?.provider ?? data.provider]}
+		</span>
 	</fieldset>
 </form>
 
@@ -237,14 +253,22 @@
 				text="Try fewer words, check the spelling, or search by title or by author only."
 			/>
 		{:else}
+			{#if data.search.notice}
+				<p
+					class="mb-4 rounded-xl border-[3px] border-dashed border-ink bg-orange-soft/70 p-3 text-sm"
+				>
+					{data.search.notice}
+				</p>
+			{/if}
 			<p class="label mb-3 text-ink/70">
 				{data.search.total.toLocaleString('en')} results · tap to select
 			</p>
 			<ul class={['grid gap-3 transition-opacity', searching && 'opacity-60']}>
-				{#each hits as hit (hit.olKey)}
+				{#each hits as hit (hit.ref)}
 					{@const status = statusOf(hit)}
 					{@const selectable = status === null || status === 'postponed'}
-					{@const isSelected = selected.has(hit.olKey)}
+					{@const isSelected = selected.has(hit.ref)}
+					{@const details = [hit.publisher, hit.year].filter(Boolean).join(' · ')}
 					<li>
 						<button
 							type="button"
@@ -267,20 +291,31 @@
 							>
 								{#if isSelected || !selectable}<Check class="size-4" strokeWidth={3.5} />{/if}
 							</span>
-							<BookCover coverId={hit.coverId} title={hit.title} class="w-14 sm:w-16" />
+							<BookCover cover={hit.cover} title={hit.title} class="w-14 sm:w-16" />
 							<span class="min-w-0 flex-1">
 								<span class="block text-lg leading-tight font-bold">{hit.title}</span>
 								{#if hit.subtitle}
 									<span class="mt-0.5 block text-sm leading-snug text-ink/65">{hit.subtitle}</span>
 								{/if}
 								<span class="mt-1 block text-sm font-medium">
-									{authorsLine(hit.authors)}{#if hit.year}<span class="text-ink/60"
-											>{` · ${hit.year}`}</span
+									{authorsLine(hit.authors)}{#if details}<span class="text-ink/60"
+											>{` · ${details}`}</span
 										>{/if}
 								</span>
 								<span class="mt-2 flex flex-wrap gap-1.5">
 									{#if status}<StatusBadge {status} />{/if}
-									{#if hit.editions > 1}<span class="chip">{hit.editions} editions</span>{/if}
+									{#if hit.language}
+										<span
+											class={[
+												'chip uppercase',
+												hit.language === data.editionLang && 'bg-teal-soft'
+											]}
+											title="Edition language">{hit.language}</span
+										>
+									{/if}
+									{#if hit.editions && hit.editions > 1}
+										<span class="chip">{hit.editions} editions</span>
+									{/if}
 								</span>
 							</span>
 						</button>

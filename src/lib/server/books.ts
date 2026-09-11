@@ -1,29 +1,29 @@
 import { MongoServerError, ObjectId, type Filter, type Sort, type WithId } from 'mongodb';
 import { collections } from './db';
+import { matchKey } from './match';
 import { cleanText, rememberTag } from './tags';
 import type { BookDoc } from './models';
 import {
 	UNAVAILABLE_LABEL,
 	type Book,
+	type CatalogBook,
 	type OwnedVia,
 	type PostponeKind,
 	type Status
 } from '$lib/types';
 
-export type NewBook = Pick<
-	BookDoc,
-	'olKey' | 'title' | 'subtitle' | 'authors' | 'year' | 'coverId'
->;
-
 export function toBook(doc: WithId<BookDoc>): Book {
 	return {
 		id: doc._id.toHexString(),
-		olKey: doc.olKey,
+		ref: doc.ref,
 		title: doc.title,
 		subtitle: doc.subtitle ?? '',
 		authors: doc.authors ?? [],
 		year: doc.year ?? null,
-		coverId: doc.coverId ?? null,
+		cover: doc.cover ?? null,
+		isbn: doc.isbn ?? null,
+		publisher: doc.publisher ?? '',
+		language: doc.language ?? '',
 		source: doc.source ?? '',
 		status: doc.status,
 		owned: doc.owned ?? null,
@@ -66,27 +66,45 @@ export async function countByStatus(): Promise<Record<Status, number>> {
 	return counts;
 }
 
-export async function statusesFor(olKeys: string[]): Promise<Map<string, Status>> {
-	if (!olKeys.length) return new Map();
+/** Status of each search hit (by `ref`), also when I track another edition of the same book. */
+export async function statusesFor(
+	hits: Pick<CatalogBook, 'ref' | 'title' | 'authors'>[]
+): Promise<Map<string, Status>> {
+	if (!hits.length) return new Map();
 	const { books } = await collections();
+	const matches = hits.map((h) => matchKey(h.title, h.authors));
 	const docs = await books
-		.find({ olKey: { $in: olKeys } }, { projection: { olKey: 1, status: 1 } })
+		.find(
+			{ $or: [{ ref: { $in: hits.map((h) => h.ref) } }, { match: { $in: matches } }] },
+			{ projection: { ref: 1, match: 1, status: 1 } }
+		)
 		.toArray();
-	return new Map(docs.map((d) => [d.olKey, d.status]));
+	const byRef = new Map(docs.map((d) => [d.ref, d.status]));
+	const byMatch = new Map(docs.map((d) => [d.match, d.status]));
+	const statuses = new Map<string, Status>();
+	hits.forEach((h, i) => {
+		const status = byRef.get(h.ref) ?? byMatch.get(matches[i]);
+		if (status) statuses.set(h.ref, status);
+	});
+	return statuses;
 }
 
 /**
  * New books land in the cart. A postponed book comes back to the cart (you heard about it again);
  * anything already in the flow is left alone.
  */
-export async function addToCart(items: NewBook[], rawSource: string) {
+export async function addToCart(items: CatalogBook[], rawSource: string) {
 	const { books } = await collections();
 	const source = await rememberTag('source', rawSource);
 	const now = new Date();
 	const result = { added: 0, revived: 0, skipped: 0 };
 
 	for (const item of items) {
-		const existing = await books.findOne({ olKey: item.olKey }, { projection: { status: 1 } });
+		const match = matchKey(item.title, item.authors);
+		const existing = await books.findOne(
+			{ $or: [{ ref: item.ref }, { match }] },
+			{ projection: { status: 1 } }
+		);
 		if (existing?.status === 'postponed') {
 			await books.updateOne(
 				{ _id: existing._id },
@@ -99,6 +117,7 @@ export async function addToCart(items: NewBook[], rawSource: string) {
 			try {
 				await books.insertOne({
 					...item,
+					match,
 					source,
 					status: 'cart',
 					owned: null,

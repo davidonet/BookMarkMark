@@ -2,7 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { field } from '$lib/server/actions';
 import { appPin, SESSION_COOKIE } from '$lib/server/auth';
-import { EMAIL_RE, getSettings, saveSettings } from '$lib/server/settings';
+import { EMAIL_RE, getSettings, parseEditionLang, saveSettings } from '$lib/server/settings';
 import { forgetTag, listTags } from '$lib/server/tags';
 
 export const load: PageServerLoad = async () => {
@@ -25,7 +25,8 @@ export const actions = {
 			bookstoreName: field(form, 'bookstoreName', 100),
 			bookstoreEmail,
 			myName: field(form, 'myName', 100),
-			emailLang: field(form, 'emailLang') === 'fr' ? 'fr' : 'en'
+			emailLang: field(form, 'emailLang') === 'fr' ? 'fr' : 'en',
+			editionLang: parseEditionLang(field(form, 'editionLang'))
 		});
 		return { ok: true };
 	},

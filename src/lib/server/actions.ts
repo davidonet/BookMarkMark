@@ -1,8 +1,9 @@
 import { fail, type RequestEvent } from '@sveltejs/kit';
 import * as books from './books';
-import type { NewBook } from './books';
+import type { CatalogBook } from '$lib/types';
 
 const MOVED = 'That book has moved in the meantime.';
+const COVER_HOSTS = ['books.google.com', 'books.googleusercontent.com', 'covers.openlibrary.org'];
 
 /** Trimmed, length-capped string field. */
 export function field(form: FormData, key: string, max = 200): string {
@@ -14,7 +15,7 @@ export const fieldList = (form: FormData, key: string) =>
 	form.getAll(key).filter((v): v is string => typeof v === 'string');
 
 /** Validates the JSON list of selected search hits sent by the search page. */
-export function parseNewBooks(raw: FormDataEntryValue | null): NewBook[] {
+export function parseNewBooks(raw: FormDataEntryValue | null): CatalogBook[] {
 	if (typeof raw !== 'string') return [];
 	let data: unknown;
 	try {
@@ -27,11 +28,19 @@ export function parseNewBooks(raw: FormDataEntryValue | null): NewBook[] {
 	const str = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 	const int = (v: unknown, min: number, max: number) =>
 		Number.isInteger(v) && (v as number) >= min && (v as number) <= max ? (v as number) : null;
+	const cover = (v: unknown) => {
+		try {
+			const url = new URL(str(v, 500));
+			return url.protocol === 'https:' && COVER_HOSTS.includes(url.hostname) ? url.href : null;
+		} catch {
+			return null;
+		}
+	};
 
 	return data
 		.slice(0, 50)
 		.map((item: Record<string, unknown>) => ({
-			olKey: str(item?.olKey, 40),
+			ref: str(item?.ref, 60),
 			title: str(item?.title, 300),
 			subtitle: str(item?.subtitle, 300),
 			authors: Array.isArray(item?.authors)
@@ -41,9 +50,12 @@ export function parseNewBooks(raw: FormDataEntryValue | null): NewBook[] {
 						.slice(0, 6)
 				: [],
 			year: int(item?.year, 0, 3000),
-			coverId: int(item?.coverId, 1, Number.MAX_SAFE_INTEGER)
+			cover: cover(item?.cover),
+			isbn: /^(\d{13}|\d{9}[\dX])$/.test(str(item?.isbn, 13)) ? str(item?.isbn, 13) : null,
+			publisher: str(item?.publisher, 120),
+			language: /^[a-z]{2,3}$/.test(str(item?.language, 3)) ? str(item?.language, 3) : ''
 		}))
-		.filter((b) => /^\/works\/OL\d+W$/.test(b.olKey) && b.title);
+		.filter((b) => /^(gb:[\w-]{4,40}|ol:\/works\/OL\d+W)$/.test(b.ref) && b.title);
 }
 
 /** Actions shared by several pages. Each form posts the book `id`. */

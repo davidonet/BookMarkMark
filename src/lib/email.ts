@@ -1,13 +1,13 @@
 import type { EmailLang } from './types';
 
 interface EmailInput {
-	books: { title: string; authors: string[] }[];
+	books: { title: string; authors: string[]; isbn?: string | null }[];
 	lang: EmailLang;
 	myName: string;
 	bookstoreName: string;
 }
 
-const NBSP = ' ';
+const NBSP = '\u00a0';
 
 const COPY = {
 	en: {
@@ -40,8 +40,10 @@ const COPY = {
 export function buildEmail({ books, lang, myName, bookstoreName }: EmailInput) {
 	const copy = COPY[lang];
 	const n = books.length;
+	// The ISBN pins the exact edition picked in the search.
 	const lines = books.map(
-		(b, i) => `${i + 1}. ${b.title}${b.authors.length ? ` — ${b.authors.join(', ')}` : ''}`
+		(b, i) =>
+			`${i + 1}. ${b.title}${b.authors.length ? ` — ${b.authors.join(', ')}` : ''}${b.isbn ? ` (ISBN ${b.isbn})` : ''}`
 	);
 	const body = [
 		copy.hello(bookstoreName.trim()),

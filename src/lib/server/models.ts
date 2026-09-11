@@ -1,16 +1,20 @@
 import type { ObjectId } from 'mongodb';
-import type { EmailLang, OwnedInfo, PostponedInfo, Status, TagKind } from '$lib/types';
+import type {
+	CatalogBook,
+	EditionLang,
+	EmailLang,
+	OwnedInfo,
+	PostponedInfo,
+	Status,
+	TagKind
+} from '$lib/types';
 
 // Collections with generated ids leave `_id` out: the driver adds it (WithId<…>) on reads.
 
-export interface BookDoc {
-	/** Open Library work key, e.g. `/works/OL59863W` (unique). */
-	olKey: string;
-	title: string;
-	subtitle: string;
-	authors: string[];
-	year: number | null;
-	coverId: number | null;
+/** A tracked book; `ref` is unique. */
+export interface BookDoc extends CatalogBook {
+	/** Normalized "title|first author": spots the same book across editions and catalogs. */
+	match: string;
 	source: string;
 	status: Status;
 	owned: OwnedInfo | null;
@@ -20,6 +24,12 @@ export interface BookDoc {
 	updatedAt: Date;
 	requestedAt: Date | null;
 	confirmedAt: Date | null;
+}
+
+/** Fields of books saved before the switch to Google Books, migrated on startup (see db.ts). */
+export interface LegacyBookFields {
+	olKey?: string;
+	coverId?: number | null;
 }
 
 /** Remembered free-text values offered in dropdowns (sources, postpone reasons). */
@@ -48,6 +58,8 @@ export interface SettingsDoc {
 	bookstoreEmail: string;
 	myName: string;
 	emailLang: EmailLang;
+	/** Missing on documents created before the setting existed. */
+	editionLang?: EditionLang;
 	createdAt: Date;
 	updatedAt?: Date;
 }

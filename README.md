@@ -3,17 +3,20 @@
 A neo-brutalist sidekick to keep track of the books you hear about (from a friend, the radio, a
 newsletter, a podcast…), order them from your local bookstore, and remember what you own.
 
-**Stack:** SvelteKit 2 (Svelte 5), Tailwind CSS 4, MongoDB Atlas, Open Library API, Vercel.
+**Stack:** SvelteKit 2 (Svelte 5), Tailwind CSS 4, MongoDB Atlas, Google Books API (Open Library
+as a fallback), Vercel.
 
 ## The flow
 
-1. **Search**: look a book up on [Open Library](https://openlibrary.org) by title, author or both,
-   with cover thumbnails. Tap results to select them, say where you heard about them, add them
-   to the cart. Sources are free text; new ones are remembered and offered in the dropdown next time.
+1. **Search**: look a book up on [Google Books](https://books.google.com) by title, author or both,
+   with covers, publisher and language. Editions in your language come first (French by default,
+   see Settings). Other editions of a book you already track are flagged, so nothing is added twice.
+   Tap results to select them, say where you heard about them, add them to the cart. Sources are
+   free text; new ones are remembered and offered in the dropdown next time.
 2. **Cart**: change the source (autosaved), or flag a book as **owned** (bought directly or
    through an online service) or **later** (a reason, remembered too, plus a free-text note).
-3. **Email**: prepare one email for your bookstore (English or French), edit it, open it in your
-   mail app or copy it, then tap _I sent it_.
+3. **Email**: prepare one email for your bookstore (English or French, with ISBNs when known), edit
+   it, open it in your mail app or copy it, then tap _I sent it_.
 4. **Bookstore**: log the answer for each book: **confirmed** (then _Got it!_ once picked up)
    or **unavailable** (out of print, or not accessible to this bookstore).
 5. **Owned** and **Later**: your shelf, and the books postponed with their reason. A postponed book
@@ -25,18 +28,26 @@ The whole app is behind a 4-digit PIN.
 
 ```bash
 pnpm install
-vercel env pull .env.development.local   # MONGODB_URI and MONGO_DB
+vercel env pull .env.development.local   # MONGODB_URI, MONGO_DB, GOOGLEBOOKS_API_KEY…
 pnpm dev
 ```
 
-| Variable      | Required | Description                                                                |
-| ------------- | -------- | -------------------------------------------------------------------------- |
-| `MONGODB_URI` | yes      | MongoDB Atlas connection string                                            |
-| `MONGO_DB`    | yes      | Database name                                                              |
-| `APP_PIN`     | prod     | The 4-digit PIN. In `pnpm dev` it defaults to `1234` when unset.           |
-| `AUTH_SECRET` | no       | Signs the session cookie (defaults to a value derived from `MONGODB_URI`). |
+| Variable              | Required | Description                                                                |
+| --------------------- | -------- | -------------------------------------------------------------------------- |
+| `MONGODB_URI`         | yes      | MongoDB Atlas connection string                                            |
+| `MONGO_DB`            | yes      | Database name                                                              |
+| `APP_PIN`             | prod     | The 4-digit PIN. In `pnpm dev` it defaults to `1234` when unset.           |
+| `GOOGLEBOOKS_API_KEY` | no       | Google Books API key. Without it, search uses Open Library.                |
+| `AUTH_SECRET`         | no       | Signs the session cookie (defaults to a value derived from `MONGODB_URI`). |
 
 Collections, indexes and the default sources / postpone reasons are created on first use.
+
+### Book catalogs
+
+Google Books needs a free API key (requests without one are refused): in the Google Cloud console,
+enable the **Books API**, create an API key and restrict it to that API. The default quota is
+1,000 requests a day, free; a search costs 2 requests (all editions + editions in your language).
+If Google fails or the quota runs out, the search falls back to Open Library and says so.
 
 ## Deploy
 

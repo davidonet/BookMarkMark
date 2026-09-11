@@ -1,7 +1,15 @@
 import { MongoClient, type Collection } from 'mongodb';
 import { attachDatabasePool } from '@vercel/functions';
 import { env } from '$env/dynamic/private';
-import type { AttemptDoc, BookDoc, RequestDoc, SettingsDoc, TagDoc } from './models';
+import { matchKey } from './match';
+import type {
+	AttemptDoc,
+	BookDoc,
+	LegacyBookFields,
+	RequestDoc,
+	SettingsDoc,
+	TagDoc
+} from './models';
 
 export interface Collections {
 	books: Collection<BookDoc>;
@@ -39,9 +47,11 @@ async function connect(): Promise<Collections> {
 		attempts: db.collection<AttemptDoc>('login_attempts')
 	};
 
+	await migrateOpenLibraryBooks(c);
 	await Promise.all([
 		c.books.createIndexes([
-			{ key: { olKey: 1 }, name: 'olKey_unique', unique: true },
+			{ key: { ref: 1 }, name: 'ref_unique', unique: true },
+			{ key: { match: 1 }, name: 'match' },
 			{ key: { status: 1, updatedAt: -1 }, name: 'status_updatedAt' }
 		]),
 		c.tags.createIndex({ kind: 1, key: 1 }, { name: 'kind_key_unique', unique: true }),
@@ -50,6 +60,38 @@ async function connect(): Promise<Collections> {
 	]);
 	await seedOnce(c);
 	return c;
+}
+
+/**
+ * Books saved when Open Library was the only catalog had `olKey`/`coverId`: move them to the
+ * catalog-neutral `ref`/`cover`/`match`. Idempotent, and a no-op once done.
+ */
+async function migrateOpenLibraryBooks(c: Collections) {
+	const books = c.books as unknown as Collection<BookDoc & LegacyBookFields>;
+	// The old unique index would reject every book once `olKey` is gone.
+	const indexes = await books.indexes().catch(() => []);
+	if (indexes.some((i) => i.name === 'olKey_unique')) await books.dropIndex('olKey_unique');
+
+	const legacy = await books.find({ ref: { $exists: false } }).toArray();
+	if (!legacy.length) return;
+	await books.bulkWrite(
+		legacy.map((doc) => ({
+			updateOne: {
+				filter: { _id: doc._id },
+				update: {
+					$set: {
+						ref: doc.olKey ? `ol:${doc.olKey}` : `legacy:${doc._id.toHexString()}`,
+						cover: doc.coverId ? `https://covers.openlibrary.org/b/id/${doc.coverId}-M.jpg` : null,
+						isbn: null,
+						publisher: '',
+						language: '',
+						match: matchKey(doc.title, doc.authors ?? [])
+					},
+					$unset: { olKey: '', coverId: '' }
+				}
+			}
+		}))
+	);
 }
 
 /** First run only: create the settings document and pre-fill the dropdowns. */
@@ -63,6 +105,7 @@ async function seedOnce(c: Collections) {
 				bookstoreEmail: '',
 				myName: '',
 				emailLang: 'en',
+				editionLang: 'fr',
 				createdAt: now
 			}
 		},

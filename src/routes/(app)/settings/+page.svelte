@@ -4,13 +4,18 @@
 	import X from '@lucide/svelte/icons/x';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import { withToast } from '$lib/enhance';
-	import type { EmailLang, TagKind } from '$lib/types';
+	import type { EditionLang, EmailLang, TagKind } from '$lib/types';
 
 	let { data } = $props();
 
 	const LANGS: { value: EmailLang; label: string }[] = [
 		{ value: 'en', label: 'English' },
 		{ value: 'fr', label: 'Français' }
+	];
+	const EDITION_LANGS: { value: EditionLang; label: string }[] = [
+		{ value: 'fr', label: 'Français' },
+		{ value: 'en', label: 'English' },
+		{ value: '', label: 'Any language' }
 	];
 
 	const lists = $derived<{ kind: TagKind; title: string; hint: string; items: string[] }[]>([
@@ -89,6 +94,28 @@
 			</div>
 		</fieldset>
 	</div>
+
+	<h2 class="mt-2 text-xl font-extrabold uppercase">Search</h2>
+	<fieldset>
+		<legend class="label mb-1.5">Editions first in</legend>
+		<div class="flex flex-wrap gap-2">
+			{#each EDITION_LANGS as l (l.value)}
+				<label class="choice has-checked:bg-ink has-checked:text-cream">
+					<input
+						class="sr-only"
+						type="radio"
+						name="editionLang"
+						value={l.value}
+						checked={data.settings.editionLang === l.value}
+					/>
+					{l.label}
+				</label>
+			{/each}
+		</div>
+		<p class="mt-2 text-sm text-ink/70">
+			Google Books lists every edition of a book: those in this language come first.
+		</p>
+	</fieldset>
 	<div><button class="btn bg-orange">Save</button></div>
 </form>
 
