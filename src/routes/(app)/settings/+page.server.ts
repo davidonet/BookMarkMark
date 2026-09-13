@@ -6,12 +6,13 @@ import { EMAIL_RE, getSettings, parseEditionLang, saveSettings } from '$lib/serv
 import { forgetTag, listTags } from '$lib/server/tags';
 
 export const load: PageServerLoad = async () => {
-	const [settings, sources, reasons] = await Promise.all([
+	const [settings, sources, reasons, borrowers] = await Promise.all([
 		getSettings(),
 		listTags('source'),
-		listTags('reason')
+		listTags('reason'),
+		listTags('borrower')
 	]);
-	return { settings, sources, reasons, devPin: appPin().usingDevDefault };
+	return { settings, sources, reasons, borrowers, devPin: appPin().usingDevDefault };
 };
 
 export const actions = {
@@ -35,7 +36,9 @@ export const actions = {
 	forget: async ({ request }) => {
 		const form = await request.formData();
 		const kind = field(form, 'kind');
-		if (kind !== 'source' && kind !== 'reason') return fail(400, { message: 'Liste inconnue.' });
+		if (kind !== 'source' && kind !== 'reason' && kind !== 'borrower') {
+			return fail(400, { message: 'Liste inconnue.' });
+		}
 		await forgetTag(kind, field(form, 'name', 100));
 		return { ok: true };
 	},

@@ -3,7 +3,7 @@ export type Status = 'cart' | 'requested' | 'confirmed' | 'owned' | 'postponed';
 export type OwnedVia = 'bookstore' | 'direct' | 'online';
 /** `mine` = I postponed it myself, the others come from the bookstore's answer. */
 export type PostponeKind = 'mine' | 'out_of_print' | 'not_accessible';
-export type TagKind = 'source' | 'reason';
+export type TagKind = 'source' | 'reason' | 'borrower';
 export type EmailLang = 'en' | 'fr';
 /** Language whose editions come first in search results ('' = no preference). */
 export type EditionLang = 'fr' | 'en' | '';
@@ -19,6 +19,13 @@ export interface OwnedInfo {
 export interface PostponedInfo {
 	kind: PostponeKind;
 	reason: string;
+	note: string;
+	at: Date;
+}
+
+/** A currently-owned book lent out to someone; cleared when it's back on the shelf. */
+export interface LentInfo {
+	to: string;
 	note: string;
 	at: Date;
 }
@@ -87,6 +94,8 @@ export interface Book extends CatalogBook {
 	status: Status;
 	owned: OwnedInfo | null;
 	postponed: PostponedInfo | null;
+	/** Set while an owned book is out on loan; null once it's back. */
+	lent: LentInfo | null;
 	requestId: string | null;
 	createdAt: Date;
 	updatedAt: Date;

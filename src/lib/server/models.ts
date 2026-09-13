@@ -4,6 +4,7 @@ import type {
 	DetailsState,
 	EditionLang,
 	EmailLang,
+	LentInfo,
 	OwnedInfo,
 	PaperEdition,
 	PocketEdition,
@@ -42,6 +43,8 @@ export interface BookDoc extends Omit<CatalogBook, 'format'> {
 	status: Status;
 	owned: OwnedInfo | null;
 	postponed: PostponedInfo | null;
+	/** Absent on books saved before lending existed. */
+	lent?: LentInfo | null;
 	requestId: ObjectId | null;
 	createdAt: Date;
 	updatedAt: Date;

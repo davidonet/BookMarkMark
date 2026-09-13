@@ -5,11 +5,14 @@
 	import { fly } from 'svelte/transition';
 	import type { ActionResult } from '@sveltejs/kit';
 	import Barcode from '@lucide/svelte/icons/barcode';
+	import Check from '@lucide/svelte/icons/check';
+	import Handshake from '@lucide/svelte/icons/handshake';
 	import Undo2 from '@lucide/svelte/icons/undo-2';
 	import BarcodeScanner from '$lib/components/BarcodeScanner.svelte';
 	import BookCard from '$lib/components/BookCard.svelte';
 	import ConfirmButton from '$lib/components/ConfirmButton.svelte';
 	import Empty from '$lib/components/Empty.svelte';
+	import LendForm from '$lib/components/LendForm.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import RefreshWhilePending from '$lib/components/RefreshWhilePending.svelte';
 	import { withToast } from '$lib/enhance';
@@ -20,6 +23,7 @@
 	let { data } = $props();
 
 	let scanning = $state(false);
+	let lendingFor = $state<string | null>(null);
 
 	async function handleScan(isbn: string) {
 		const body = new FormData();
@@ -44,13 +48,14 @@
 	const shown = $derived(
 		needle
 			? data.books.filter((b) =>
-					[b.title, b.subtitle, ...b.authors, b.source, b.owned?.note ?? '']
+					[b.title, b.subtitle, ...b.authors, b.source, b.owned?.note ?? '', b.lent?.to ?? '']
 						.join(' ')
 						.toLocaleLowerCase()
 						.includes(needle)
 				)
 			: data.books
 	);
+	const lentCount = $derived(data.books.filter((b) => b.lent).length);
 	const viaCounts = $derived(
 		(Object.keys(OWNED_VIA_LABEL) as OwnedVia[])
 			.map((via) => ({
@@ -88,6 +93,9 @@
 		{#each viaCounts as c (c.via)}
 			<span class="chip">{c.label} · {c.n}</span>
 		{/each}
+		{#if lentCount}
+			<span class="chip bg-orange-soft">{plural(lentCount, 'prêté')}</span>
+		{/if}
 	</div>
 
 	<input
@@ -114,20 +122,56 @@
 							<span class="chip border-dashed bg-transparent">obtenu {ago(book.owned.at)}</span>
 						{/if}
 						{#if book.source}<span class="chip">entendu via {book.source}</span>{/if}
+						{#if book.lent}
+							<span class="chip bg-orange-soft"
+								>Prêté à {book.lent.to} · depuis {ago(book.lent.at)}</span
+							>
+						{/if}
 					{/snippet}
 					{#if book.owned?.note}
 						<p class="mb-2 text-sm text-ink/80 italic">"{book.owned.note}"</p>
 					{/if}
-					<form
-						method="POST"
-						action="?/backToCart"
-						use:enhance={withToast('De retour dans le panier')}
-					>
-						<input type="hidden" name="id" value={book.id} />
-						<button class="btn btn-sm btn-ghost -ml-2"
-							><Undo2 class="size-4" /> Retour au panier</button
-						>
-					</form>
+					{#if book.lent?.note}
+						<p class="mb-2 text-sm text-ink/80 italic">"{book.lent.note}"</p>
+					{/if}
+					{#if lendingFor === book.id}
+						<LendForm
+							id={book.id}
+							borrowers={data.borrowers}
+							oncancel={() => (lendingFor = null)}
+						/>
+					{:else}
+						<div class="flex flex-wrap items-center gap-2">
+							{#if book.lent}
+								<form
+									method="POST"
+									action="?/returned"
+									use:enhance={withToast('De retour chez vous')}
+								>
+									<input type="hidden" name="id" value={book.id} />
+									<button class="btn btn-sm bg-orange"><Check class="size-4" /> Rendu</button>
+								</form>
+							{:else}
+								<button
+									type="button"
+									class="btn btn-sm bg-orange-soft"
+									onclick={() => (lendingFor = book.id)}
+								>
+									<Handshake class="size-4" /> Prêter
+								</button>
+							{/if}
+							<form
+								method="POST"
+								action="?/backToCart"
+								use:enhance={withToast('De retour dans le panier')}
+							>
+								<input type="hidden" name="id" value={book.id} />
+								<button class="btn btn-sm btn-ghost"
+									><Undo2 class="size-4" /> Retour au panier</button
+								>
+							</form>
+						</div>
+					{/if}
 				</BookCard>
 			</li>
 		{/each}

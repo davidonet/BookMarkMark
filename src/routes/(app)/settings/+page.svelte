@@ -30,6 +30,12 @@
 			title: 'Raisons de report',
 			hint: 'Proposées quand vous mettez un livre de côté pour plus tard.',
 			items: data.reasons
+		},
+		{
+			kind: 'borrower',
+			title: 'Emprunteurs',
+			hint: 'Proposés quand vous prêtez un livre. Les nouveaux sont mémorisés automatiquement.',
+			items: data.borrowers
 		}
 	]);
 </script>

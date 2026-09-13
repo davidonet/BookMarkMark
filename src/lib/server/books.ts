@@ -47,6 +47,7 @@ export function toBook(doc: WithId<BookDoc>): Book {
 		status: doc.status,
 		owned: doc.owned ?? null,
 		postponed: doc.postponed ?? null,
+		lent: doc.lent ?? null,
 		requestId: doc.requestId?.toHexString() ?? null,
 		createdAt: doc.createdAt,
 		updatedAt: doc.updatedAt,
@@ -246,11 +247,24 @@ export async function postpone(id: string, kind: PostponeKind, rawReason: string
 	);
 }
 
+/** Lends an owned book to someone; stays `owned`, just flagged as out on loan. */
+export async function lendBook(id: string, rawTo: string, note: string) {
+	const to = await rememberTag('borrower', rawTo);
+	if (!to) return false;
+	return move(id, ['owned'], { lent: { to, note: cleanText(note, 300), at: new Date() } });
+}
+
+/** Back on the shelf. */
+export function returnBook(id: string) {
+	return move(id, ['owned'], { lent: null });
+}
+
 export function backToCart(id: string) {
 	return move(id, ['requested', 'confirmed', 'owned', 'postponed'], {
 		status: 'cart',
 		owned: null,
 		postponed: null,
+		lent: null,
 		requestId: null,
 		requestedAt: null,
 		confirmedAt: null
