@@ -16,7 +16,7 @@ const CACHE_TTL = 10 * 60 * 1000;
 const cache = new Map<string, { at: number; page: CatalogPage }>();
 
 export const parseMode = (value: string | null): SearchMode =>
-	value === 'title' || value === 'author' ? value : 'all';
+	value === 'title' || value === 'author' || value === 'isbn' ? value : 'all';
 
 export const parseProvider = (value: string | null): Provider | undefined =>
 	value === 'google' || value === 'openlibrary' ? value : undefined;

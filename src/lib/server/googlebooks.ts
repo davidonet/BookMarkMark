@@ -25,6 +25,7 @@ interface Volume {
 
 /** `intitle:` and `inauthor:` only apply to the next word, so every word gets one. */
 export function googleQuery(q: string, mode: SearchMode) {
+	if (mode === 'isbn') return `isbn:${q.trim()}`;
 	const words = q.trim().split(/\s+/).filter(Boolean);
 	if (mode === 'all') return words.join(' ');
 	const operator = mode === 'title' ? 'intitle:' : 'inauthor:';

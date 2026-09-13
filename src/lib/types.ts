@@ -7,7 +7,7 @@ export type TagKind = 'source' | 'reason';
 export type EmailLang = 'en' | 'fr';
 /** Language whose editions come first in search results ('' = no preference). */
 export type EditionLang = 'fr' | 'en' | '';
-export type SearchMode = 'all' | 'title' | 'author';
+export type SearchMode = 'all' | 'title' | 'author' | 'isbn';
 export type Provider = 'google' | 'openlibrary';
 
 export interface OwnedInfo {

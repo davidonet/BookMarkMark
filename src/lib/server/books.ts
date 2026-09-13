@@ -160,6 +160,51 @@ export async function addToCart(items: CatalogBook[], rawSource: string) {
 	return result;
 }
 
+/**
+ * Adds a book straight to the shelf (scanned barcode): revives it from wherever it was, or
+ * inserts it fresh. Unlike `addToCart`, an already-tracked book is always moved to `owned`.
+ */
+export async function addOwned(item: CatalogBook, via: OwnedVia = 'direct') {
+	const { books } = await collections();
+	const match = matchKey(item.title, item.authors);
+	const now = new Date();
+	const owned = { via, note: '', at: now };
+
+	const existing = await books.findOne(
+		{ $or: [{ ref: item.ref }, { match }] },
+		{ projection: { status: 1 } }
+	);
+	if (existing) {
+		if (existing.status === 'owned') return { already: true as const };
+		await books.updateOne(
+			{ _id: existing._id },
+			{ $set: { status: 'owned', owned, postponed: null, updatedAt: now } }
+		);
+		return { already: false as const };
+	}
+
+	try {
+		const { insertedId } = await books.insertOne({
+			...item,
+			match,
+			source: '',
+			status: 'owned',
+			owned,
+			postponed: null,
+			requestId: null,
+			createdAt: now,
+			updatedAt: now,
+			requestedAt: null,
+			confirmedAt: null
+		});
+		lookUpDetails([insertedId]);
+		return { already: false as const };
+	} catch (err) {
+		if (err instanceof MongoServerError && err.code === 11000) return { already: true as const };
+		throw err;
+	}
+}
+
 /** Moves one book, only if it is currently in one of the `from` statuses. */
 async function move(id: string, from: Status[], set: Partial<BookDoc>): Promise<boolean> {
 	const _id = toObjectId(id);

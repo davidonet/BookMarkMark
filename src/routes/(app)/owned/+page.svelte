@@ -1,8 +1,12 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { deserialize, enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
 	import { flip } from 'svelte/animate';
 	import { fly } from 'svelte/transition';
+	import type { ActionResult } from '@sveltejs/kit';
+	import Barcode from '@lucide/svelte/icons/barcode';
 	import Undo2 from '@lucide/svelte/icons/undo-2';
+	import BarcodeScanner from '$lib/components/BarcodeScanner.svelte';
 	import BookCard from '$lib/components/BookCard.svelte';
 	import ConfirmButton from '$lib/components/ConfirmButton.svelte';
 	import Empty from '$lib/components/Empty.svelte';
@@ -10,9 +14,30 @@
 	import RefreshWhilePending from '$lib/components/RefreshWhilePending.svelte';
 	import { withToast } from '$lib/enhance';
 	import { ago, plural } from '$lib/format';
+	import { toast } from '$lib/toast.svelte';
 	import { OWNED_VIA_LABEL, type OwnedVia, isLookingUp } from '$lib/types';
 
 	let { data } = $props();
+
+	let scanning = $state(false);
+
+	async function handleScan(isbn: string) {
+		const body = new FormData();
+		body.set('isbn', isbn);
+		const res = await fetch('?/scan', { method: 'POST', body });
+		const result: ActionResult<{ already: boolean; title: string }, { message: string }> =
+			deserialize(await res.text());
+
+		if (result.type === 'success') {
+			const { already, title } = result.data ?? { already: false, title: '' };
+			toast(already ? `Déjà dans vos livres : ${title}` : `Ajouté à votre étagère : ${title} 📚`);
+			await invalidateAll();
+		} else if (result.type === 'failure') {
+			toast(String(result.data?.message ?? "Ce livre n'a pas pu être ajouté."), 'error');
+		} else if (result.type === 'error') {
+			toast('Une erreur est survenue.', 'error');
+		}
+	}
 
 	let filter = $state('');
 	const needle = $derived(filter.trim().toLocaleLowerCase());
@@ -42,12 +67,20 @@
 </svelte:head>
 
 <RefreshWhilePending active={data.books.some(isLookingUp)} />
-<PageHeader title="Possédés" kicker="Votre étagère" tone="ink" />
+<PageHeader title="Possédés" kicker="Votre étagère" tone="ink">
+	<button type="button" class="btn bg-orange" onclick={() => (scanning = true)}>
+		<Barcode class="size-4" /> Scanner un livre
+	</button>
+</PageHeader>
+
+{#if scanning}
+	<BarcodeScanner onscan={handleScan} onclose={() => (scanning = false)} />
+{/if}
 
 {#if data.books.length === 0}
 	<Empty
 		title="Étagère vide"
-		text="Les livres que vous obtenez, chez votre libraire, directement ou en ligne, sont listés ici."
+		text="Les livres que vous obtenez, chez votre libraire, directement ou en ligne, sont listés ici. Ou scannez un livre que vous avez déjà."
 	/>
 {:else}
 	<div class="mb-4 flex flex-wrap gap-2">
