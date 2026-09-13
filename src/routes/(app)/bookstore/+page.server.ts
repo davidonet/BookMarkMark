@@ -14,23 +14,23 @@ export const actions = {
 	/** One or several `id`s: the bookstore can get them. */
 	confirm: async ({ request }) => {
 		const n = await confirmBooks(fieldList(await request.formData(), 'id'));
-		return n ? { n } : fail(409, { message: 'Nothing left to confirm.' });
+		return n ? { n } : fail(409, { message: 'Plus rien à confirmer.' });
 	},
 
 	/** One or several `id`s: picked up, now on the shelf. */
 	gotIt: async ({ request }) => {
 		const n = await pickUp(fieldList(await request.formData(), 'id'));
-		return n ? { n } : fail(409, { message: 'Nothing left to pick up.' });
+		return n ? { n } : fail(409, { message: 'Plus rien à récupérer.' });
 	},
 
 	unavailable: async ({ request }) => {
 		const form = await request.formData();
 		const kind = field(form, 'kind');
 		if (kind !== 'out_of_print' && kind !== 'not_accessible') {
-			return fail(400, { message: 'Pick a reason.' });
+			return fail(400, { message: 'Choisissez une raison.' });
 		}
 		const ok = await postpone(field(form, 'id'), kind, '', field(form, 'note', 300));
-		return ok ? { ok } : fail(409, { message: 'That book has moved in the meantime.' });
+		return ok ? { ok } : fail(409, { message: 'Ce livre a changé de statut entre-temps.' });
 	},
 
 	backToCart: bookActions.backToCart

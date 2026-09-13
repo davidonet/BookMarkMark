@@ -46,14 +46,14 @@
 			pin = '';
 			shaking = true;
 			setTimeout(() => (shaking = false), 450);
-			if (result.type === 'error') crashed = result.error?.message ?? 'Something went wrong.';
+			if (result.type === 'error') crashed = result.error?.message ?? 'Une erreur est survenue.';
 			else await update({ reset: false });
 		};
 	};
 </script>
 
 <svelte:head>
-	<title>Unlock · BookMarkMark</title>
+	<title>Déverrouiller · BookMarkMark</title>
 </svelte:head>
 
 <main class="grid min-h-dvh place-items-center px-5 py-10">
@@ -66,15 +66,15 @@
 					>Mark</span
 				>
 			</h1>
-			<p class="text-ink/70">Books you heard about, kept safe.</p>
+			<p class="text-ink/70">Les livres dont vous avez entendu parler, gardés en sécurité.</p>
 		</div>
 
 		{#if !data.configured}
 			<div class="card bg-orange-soft p-5">
-				<p class="font-bold">No PIN configured.</p>
+				<p class="font-bold">Aucun code PIN configuré.</p>
 				<p class="mt-2 text-sm">
-					Set a 4-digit <code class="font-mono font-bold">APP_PIN</code> environment variable on Vercel,
-					then redeploy.
+					Définissez une variable d'environnement <code class="font-mono font-bold">APP_PIN</code> à 4
+					chiffres sur Vercel, puis redéployez.
 				</p>
 			</div>
 		{:else}
@@ -93,7 +93,7 @@
 					pattern={'[0-9]{4}'}
 					maxlength="4"
 					required
-					aria-label="PIN code"
+					aria-label="Code PIN"
 					aria-describedby="pin-message"
 					value={pin}
 					{oninput}
@@ -134,7 +134,7 @@
 					<button
 						type="button"
 						class="btn btn-lg btn-ghost"
-						aria-label="Delete last digit"
+						aria-label="Supprimer le dernier chiffre"
 						disabled={busy || !pin}
 						onclick={() => (pin = pin.slice(0, -1))}
 					>
@@ -149,7 +149,7 @@
 					<button
 						type="submit"
 						class="btn btn-lg bg-orange"
-						aria-label="Unlock"
+						aria-label="Déverrouiller"
 						disabled={busy || pin.length < 4}
 					>
 						<ArrowRight class="size-6" />
@@ -158,7 +158,7 @@
 			</form>
 			{#if data.devPin}
 				<p class="label mt-5 text-center text-ink/60">
-					Dev mode · no APP_PIN set · use {data.devPin}
+					Mode dev · APP_PIN non défini · utilisez {data.devPin}
 				</p>
 			{/if}
 		{/if}

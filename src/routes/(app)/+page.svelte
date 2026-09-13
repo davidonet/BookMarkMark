@@ -31,9 +31,9 @@
 	let { data } = $props();
 
 	const MODES: { value: SearchMode; label: string }[] = [
-		{ value: 'all', label: 'Anything' },
-		{ value: 'title', label: 'Title' },
-		{ value: 'author', label: 'Author' }
+		{ value: 'all', label: 'Tout' },
+		{ value: 'title', label: 'Titre' },
+		{ value: 'author', label: 'Auteur' }
 	];
 
 	/** Shown until the first book is added. */
@@ -41,20 +41,20 @@
 		{
 			n: 1,
 			tone: 'bg-orange',
-			title: 'Search',
-			text: 'Heard about a book on the radio or from a friend? Look it up here.'
+			title: 'Rechercher',
+			text: "Vous avez entendu parler d'un livre à la radio ou par un ami ? Cherchez-le ici."
 		},
 		{
 			n: 2,
 			tone: 'bg-violet',
-			title: 'Add',
-			text: 'Tap the results, say where you heard about them, add them to the cart.'
+			title: 'Ajouter',
+			text: 'Sélectionnez les résultats, indiquez où vous en avez entendu parler, ajoutez-les au panier.'
 		},
 		{
 			n: 3,
 			tone: 'bg-teal',
-			title: 'Order',
-			text: 'One email to your bookstore, log the answers, watch your shelf grow.'
+			title: 'Commander',
+			text: 'Un email à votre libraire, notez les réponses, et regardez votre étagère grandir.'
 		}
 	];
 
@@ -114,7 +114,10 @@
 			if (!res.ok) throw new Error(next.message);
 			more = { key, hits: [...previous, ...next.hits], page, hasMore: next.hasMore };
 		} catch (err) {
-			toast((err instanceof Error && err.message) || 'Could not load more results.', 'error');
+			toast(
+				(err instanceof Error && err.message) || 'Impossible de charger plus de résultats.',
+				'error'
+			);
 		} finally {
 			loadingMore = false;
 		}
@@ -155,11 +158,11 @@
 		return async ({ result, update }) => {
 			done();
 			if (result.type === 'error') {
-				toast('Something went wrong.', 'error');
+				toast('Une erreur est survenue.', 'error');
 				return;
 			}
 			if (result.type === 'failure') {
-				toast(String(result.data?.message ?? 'Could not add those.'), 'error');
+				toast(String(result.data?.message ?? 'Impossible de les ajouter.'), 'error');
 			} else if (result.type === 'success') {
 				const { added = 0, revived = 0 } = (result.data ?? {}) as {
 					added?: number;
@@ -168,10 +171,11 @@
 				for (const key of keys) justAdded.set(key, 'cart');
 				selected.clear();
 				source = '';
+				const n = added + revived;
 				toast(
-					added + revived
-						? `${plural(added + revived, 'book')} added to your cart 🛒`
-						: 'Already in your lists'
+					n
+						? `${plural(n, 'livre')} ajouté${n > 1 ? 's' : ''} à votre panier 🛒`
+						: 'Déjà dans vos listes'
 				);
 			}
 			await update({ reset: false });
@@ -180,11 +184,11 @@
 </script>
 
 <svelte:head>
-	<title>{data.q ? `${data.q} · ` : ''}Search · BookMarkMark</title>
+	<title>{data.q ? `${data.q} · ` : ''}Recherche · BookMarkMark</title>
 </svelte:head>
 
 <RefreshWhilePending active={data.recent.some(isLookingUp)} />
-<PageHeader title="Heard of a book?" kicker="Step 1 · Find it" tone="orange" />
+<PageHeader title="Un livre en tête ?" kicker="Étape 1 · Trouvez-le" tone="orange" />
 
 <form
 	bind:this={searchForm}
@@ -207,24 +211,24 @@
 					typed = e.currentTarget.value;
 					schedule();
 				}}
-				placeholder="Title, author, or both…"
-				aria-label="Search books"
+				placeholder="Titre, auteur, ou les deux…"
+				aria-label="Rechercher des livres"
 				autocomplete="off"
 				enterkeyhint="search"
 				class="input h-14 pl-12 text-lg shadow-brutal-sm"
 			/>
 		</div>
-		<button class="btn h-14 bg-orange px-5" aria-label="Search">
+		<button class="btn h-14 bg-orange px-5" aria-label="Rechercher">
 			{#if searching}
 				<LoaderCircle class="size-5 animate-spin" />
 			{:else}
-				<SearchIcon class="size-5 sm:hidden" /><span class="hidden sm:inline">Search</span>
+				<SearchIcon class="size-5 sm:hidden" /><span class="hidden sm:inline">Rechercher</span>
 			{/if}
 		</button>
 	</div>
 
 	<fieldset class="mt-3 flex flex-wrap items-center gap-2">
-		<legend class="sr-only">Search in</legend>
+		<legend class="sr-only">Rechercher dans</legend>
 		{#each MODES as m (m.value)}
 			<label class="choice py-1.5 text-xs uppercase has-checked:bg-ink has-checked:text-cream">
 				<input
@@ -248,13 +252,13 @@
 </form>
 
 {#if data.search}
-	<section class="mt-8" aria-busy={searching} aria-label="Results">
+	<section class="mt-8" aria-busy={searching} aria-label="Résultats">
 		{#if data.search.error}
 			<Empty title="Hmm." text={data.search.error} class="bg-orange-soft" />
 		{:else if hits.length === 0}
 			<Empty
-				title="Nothing found"
-				text="Try fewer words, check the spelling, or search by title or by author only."
+				title="Aucun résultat"
+				text="Essayez avec moins de mots, vérifiez l'orthographe, ou cherchez par titre ou par auteur uniquement."
 			/>
 		{:else}
 			{#if data.search.notice}
@@ -265,7 +269,7 @@
 				</p>
 			{/if}
 			<p class="label mb-3 text-ink/70">
-				{data.search.total.toLocaleString('en')} results · tap to select
+				{data.search.total.toLocaleString('fr-FR')} résultats · touchez pour sélectionner
 			</p>
 			<ul class={['grid gap-3 transition-opacity', searching && 'opacity-60']}>
 				{#each hits as hit (hit.ref)}
@@ -314,17 +318,17 @@
 												'chip uppercase',
 												hit.language === data.editionLang && 'bg-teal-soft'
 											]}
-											title="Edition language">{hit.language}</span
+											title="Langue de l'édition">{hit.language}</span
 										>
 									{/if}
 									{#if hit.format === 'ebook'}
 										<span
 											class="chip bg-orange-soft"
-											title="Ebook edition: the ISBN is not the paper one">ebook</span
+											title="Édition ebook : l'ISBN n'est pas celui du papier">ebook</span
 										>
 									{/if}
 									{#if hit.editions && hit.editions > 1}
-										<span class="chip">{hit.editions} editions</span>
+										<span class="chip">{hit.editions} éditions</span>
 									{/if}
 								</span>
 							</span>
@@ -337,7 +341,7 @@
 				<div class="mt-6 flex justify-center">
 					<button type="button" class="btn" onclick={loadMore} disabled={loadingMore}>
 						{#if loadingMore}<LoaderCircle class="size-4 animate-spin" />{/if}
-						More results
+						Plus de résultats
 					</button>
 				</div>
 			{/if}
@@ -345,7 +349,7 @@
 	</section>
 {:else if data.recent.length}
 	<section class="mt-10" aria-labelledby="recent-title">
-		<h2 id="recent-title" class="label mb-3 text-ink/70">Latest finds</h2>
+		<h2 id="recent-title" class="label mb-3 text-ink/70">Derniers ajouts</h2>
 		<ul class="grid gap-3">
 			{#each data.recent as book (book.id)}
 				<li>
@@ -361,7 +365,7 @@
 		</ul>
 	</section>
 {:else}
-	<section class="mt-10 grid gap-4 sm:grid-cols-3" aria-label="How it works">
+	<section class="mt-10 grid gap-4 sm:grid-cols-3" aria-label="Comment ça marche">
 		{#each STEPS as step (step.n)}
 			<div class="card p-5">
 				<span
@@ -393,23 +397,24 @@
 			<input type="hidden" name="books" value={selectedJson} />
 			<div>
 				<label for="source" class="label mb-1.5 block">
-					{plural(selected.size, 'book')} selected · heard from
+					{plural(selected.size, 'livre')} sélectionné{selected.size > 1 ? 's' : ''} · entendu parler
+					par
 				</label>
 				<Combobox
 					id="source"
 					name="source"
 					bind:value={source}
 					options={data.sources}
-					placeholder="Friend, radio, podcast…"
+					placeholder="Ami, radio, podcast…"
 					placement="up"
-					newLabel="New source"
+					newLabel="Nouvelle source"
 					maxlength={80}
 				/>
 			</div>
 			<div class="flex gap-2">
-				<button type="button" class="btn" onclick={() => selected.clear()}>Clear</button>
+				<button type="button" class="btn" onclick={() => selected.clear()}>Effacer</button>
 				<button class="btn flex-1 bg-orange"
-					><Plus class="size-4" strokeWidth={3} /> Add to cart</button
+					><Plus class="size-4" strokeWidth={3} /> Ajouter au panier</button
 				>
 			</div>
 		</form>

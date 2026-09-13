@@ -40,7 +40,7 @@ async function fetchPage(provider: Provider, { q, mode, page, lang }: Query) {
 
 	let result: CatalogPage;
 	if (provider === 'google') {
-		if (!env.GOOGLEBOOKS_API_KEY) throw new CatalogError('no API key is configured');
+		if (!env.GOOGLEBOOKS_API_KEY) throw new CatalogError('aucune clé API configurée');
 		result = await searchGoogleBooks(q, mode, page, env.GOOGLEBOOKS_API_KEY, lang);
 	} else {
 		result = await searchOpenLibrary(q, mode, page);
@@ -50,7 +50,7 @@ async function fetchPage(provider: Provider, { q, mode, page, lang }: Query) {
 	return result;
 }
 
-const reason = (err: unknown) => (err instanceof CatalogError ? err.message : 'it did not answer');
+const reason = (err: unknown) => (err instanceof CatalogError ? err.message : 'il n’a pas répondu');
 
 /**
  * Searches the preferred catalog and falls back to the other one for a first page, so a
@@ -74,7 +74,7 @@ export async function search(
 		provider = preferred === 'google' ? 'openlibrary' : 'google';
 		if (provider === 'google' && !env.GOOGLEBOOKS_API_KEY) throw err;
 		result = await fetchPage(provider, query);
-		notice = `${PROVIDER_LABEL[preferred]} is unavailable (${reason(err)}), results come from ${PROVIDER_LABEL[provider]}.`;
+		notice = `${PROVIDER_LABEL[preferred]} est indisponible (${reason(err)}), les résultats viennent de ${PROVIDER_LABEL[provider]}.`;
 	}
 
 	const statuses = await statusesFor(result.hits);

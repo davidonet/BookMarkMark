@@ -14,8 +14,9 @@ export const actions = {
 		const form = await request.formData();
 		const ids = fieldList(form, 'id');
 		const to = field(form, 'to', 200);
-		if (!ids.length) return fail(400, { message: 'Pick at least one book.' });
-		if (to && !EMAIL_RE.test(to)) return fail(400, { message: 'That email address looks off.' });
+		if (!ids.length) return fail(400, { message: 'Choisissez au moins un livre.' });
+		if (to && !EMAIL_RE.test(to))
+			return fail(400, { message: 'Cette adresse email semble incorrecte.' });
 
 		const moved = await markRequested(ids, {
 			to,
@@ -27,7 +28,7 @@ export const actions = {
 			emailLang: field(form, 'lang') === 'fr' ? 'fr' : 'en',
 			...(to ? { bookstoreEmail: to } : {})
 		});
-		if (!moved) return fail(409, { message: 'Those books already left the cart.' });
+		if (!moved) return fail(409, { message: 'Ces livres ont déjà quitté le panier.' });
 		redirect(303, '/bookstore');
 	}
 } satisfies Actions;

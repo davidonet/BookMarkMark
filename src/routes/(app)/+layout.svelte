@@ -13,31 +13,31 @@
 	let { data, children } = $props();
 
 	const nav = $derived([
-		{ href: resolve('/'), label: 'Search', icon: SearchIcon, tone: 'bg-orange', count: 0 },
+		{ href: resolve('/'), label: 'Recherche', icon: SearchIcon, tone: 'bg-orange', count: 0 },
 		{
 			href: resolve('/cart'),
-			label: 'Cart',
+			label: 'Panier',
 			icon: ShoppingBasket,
 			tone: 'bg-violet',
 			count: data.counts.cart
 		},
 		{
 			href: resolve('/bookstore'),
-			label: 'Bookstore',
+			label: 'Librairie',
 			icon: Store,
 			tone: 'bg-teal',
 			count: data.counts.requested + data.counts.confirmed
 		},
 		{
 			href: resolve('/owned'),
-			label: 'Owned',
+			label: 'Possédés',
 			icon: LibraryBig,
 			tone: 'bg-ink text-cream',
 			count: data.counts.owned
 		},
 		{
 			href: resolve('/later'),
-			label: 'Later',
+			label: 'Plus tard',
 			icon: Hourglass,
 			tone: 'bg-violet-soft',
 			count: data.counts.postponed
@@ -54,7 +54,7 @@
 			<a
 				href={resolve('/')}
 				class="flex shrink-0 items-center gap-2"
-				aria-label="BookMarkMark, search"
+				aria-label="BookMarkMark, recherche"
 			>
 				<Logo class="h-9 w-auto -rotate-6" />
 				<span class="text-lg leading-none font-extrabold tracking-tight uppercase">
@@ -65,7 +65,7 @@
 				</span>
 			</a>
 
-			<nav class="ml-auto hidden gap-2 md:flex" aria-label="Main">
+			<nav class="ml-auto hidden gap-2 md:flex" aria-label="Principal">
 				{#each nav as item (item.href)}
 					<a
 						href={item.href}
@@ -87,7 +87,7 @@
 
 			<a
 				href={resolve('/settings')}
-				aria-label="Settings"
+				aria-label="Réglages"
 				aria-current={isActive('/settings') ? 'page' : undefined}
 				class={['btn btn-sm ml-auto px-2 md:ml-0', isActive('/settings') && 'bg-orange']}
 			>
@@ -102,7 +102,7 @@
 
 	<nav
 		class="fixed inset-x-0 bottom-0 z-40 border-t-[3px] border-ink bg-paper pb-[env(safe-area-inset-bottom)] md:hidden"
-		aria-label="Main"
+		aria-label="Principal"
 	>
 		<ul class="grid grid-cols-5">
 			{#each nav as item (item.href)}

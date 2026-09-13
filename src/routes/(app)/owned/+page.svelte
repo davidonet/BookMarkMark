@@ -38,20 +38,20 @@
 </script>
 
 <svelte:head>
-	<title>Owned · BookMarkMark</title>
+	<title>Possédés · BookMarkMark</title>
 </svelte:head>
 
 <RefreshWhilePending active={data.books.some(isLookingUp)} />
-<PageHeader title="Owned" kicker="Your shelf" tone="ink" />
+<PageHeader title="Possédés" kicker="Votre étagère" tone="ink" />
 
 {#if data.books.length === 0}
 	<Empty
-		title="Shelf is empty"
-		text="Books you get, from your bookstore, directly or online, are listed here."
+		title="Étagère vide"
+		text="Les livres que vous obtenez, chez votre libraire, directement ou en ligne, sont listés ici."
 	/>
 {:else}
 	<div class="mb-4 flex flex-wrap gap-2">
-		<span class="chip bg-ink text-cream">{plural(data.books.length, 'book')}</span>
+		<span class="chip bg-ink text-cream">{plural(data.books.length, 'livre')}</span>
 		{#each viaCounts as c (c.via)}
 			<span class="chip">{c.label} · {c.n}</span>
 		{/each}
@@ -61,8 +61,8 @@
 		type="search"
 		bind:value={filter}
 		class="input mb-5"
-		placeholder="Filter by title, author, source…"
-		aria-label="Filter owned books"
+		placeholder="Filtrer par titre, auteur, source…"
+		aria-label="Filtrer les livres possédés"
 	/>
 
 	<ul class="grid gap-3">
@@ -70,24 +70,29 @@
 			<li animate:flip={{ duration: 250 }} out:fly={{ x: 80, duration: 200 }}>
 				<BookCard {book}>
 					{#snippet aside()}
-						<form method="POST" action="?/remove" use:enhance={withToast('Removed')}>
+						<form method="POST" action="?/remove" use:enhance={withToast('Supprimé')}>
 							<input type="hidden" name="id" value={book.id} />
-							<ConfirmButton label="Delete from BookMarkMark" />
+							<ConfirmButton label="Supprimer de BookMarkMark" />
 						</form>
 					{/snippet}
 					{#snippet meta()}
 						{#if book.owned}
 							<span class="chip bg-teal">{OWNED_VIA_LABEL[book.owned.via]}</span>
-							<span class="chip border-dashed bg-transparent">got it {ago(book.owned.at)}</span>
+							<span class="chip border-dashed bg-transparent">obtenu {ago(book.owned.at)}</span>
 						{/if}
-						{#if book.source}<span class="chip">heard via {book.source}</span>{/if}
+						{#if book.source}<span class="chip">entendu via {book.source}</span>{/if}
 					{/snippet}
 					{#if book.owned?.note}
-						<p class="mb-2 text-sm text-ink/80 italic">“{book.owned.note}”</p>
+						<p class="mb-2 text-sm text-ink/80 italic">"{book.owned.note}"</p>
 					{/if}
-					<form method="POST" action="?/backToCart" use:enhance={withToast('Back in the cart')}>
+					<form
+						method="POST"
+						action="?/backToCart"
+						use:enhance={withToast('De retour dans le panier')}
+					>
 						<input type="hidden" name="id" value={book.id} />
-						<button class="btn btn-sm btn-ghost -ml-2"><Undo2 class="size-4" /> Back to cart</button
+						<button class="btn btn-sm btn-ghost -ml-2"
+							><Undo2 class="size-4" /> Retour au panier</button
 						>
 					</form>
 				</BookCard>
@@ -95,6 +100,6 @@
 		{/each}
 	</ul>
 	{#if !shown.length}
-		<p class="mt-6 text-center text-ink/60">No match for “{filter}”.</p>
+		<p class="mt-6 text-center text-ink/60">Aucun résultat pour "{filter}".</p>
 	{/if}
 {/if}

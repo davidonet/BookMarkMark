@@ -1,10 +1,10 @@
 export function authorsLine(authors: string[]): string {
-	if (!authors.length) return 'Unknown author';
+	if (!authors.length) return 'Auteur inconnu';
 	if (authors.length <= 2) return authors.join(' & ');
 	return `${authors[0]}, ${authors[1]} +${authors.length - 2}`;
 }
 
-const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+const rtf = new Intl.RelativeTimeFormat('fr', { numeric: 'auto' });
 const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
 	['year', 31_536_000],
 	['month', 2_592_000],
@@ -14,14 +14,14 @@ const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
 	['minute', 60]
 ];
 
-/** "3 days ago", "last week"… timezone-independent, so server and browser agree. */
+/** "il y a 3 jours", "la semaine dernière"… timezone-independent, so server and browser agree. */
 export function ago(date: Date | string | null | undefined): string {
 	if (!date) return '';
 	const seconds = Math.round((new Date(date).getTime() - Date.now()) / 1000);
 	for (const [unit, size] of UNITS) {
 		if (Math.abs(seconds) >= size) return rtf.format(Math.round(seconds / size), unit);
 	}
-	return 'just now';
+	return "à l'instant";
 }
 
 const euros = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });

@@ -33,7 +33,7 @@ export async function searchOpenLibrary(
 		},
 		signal: AbortSignal.timeout(15_000)
 	});
-	if (!res.ok) throw new CatalogError(`it answered ${res.status}`);
+	if (!res.ok) throw new CatalogError(`il a répondu ${res.status}`);
 	const json = (await res.json()) as { numFound?: number; docs?: OpenLibraryDoc[] };
 
 	const hits = (json.docs ?? [])

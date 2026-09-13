@@ -22,12 +22,12 @@ export function withToast(
 		return async ({ result, update }) => {
 			try {
 				if (result.type === 'error') {
-					toast(result.error?.message ?? 'Something went wrong.', 'error');
+					toast(result.error?.message ?? 'Une erreur est survenue.', 'error');
 					return;
 				}
 				await update({ reset: options.reset ?? false });
 				if (result.type === 'failure') {
-					toast(String(result.data?.message ?? 'That did not work.'), 'error');
+					toast(String(result.data?.message ?? "Ça n'a pas fonctionné."), 'error');
 					return;
 				}
 				const text =

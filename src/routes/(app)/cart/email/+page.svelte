@@ -56,9 +56,9 @@
 		try {
 			await navigator.clipboard.writeText(body);
 			opened = true;
-			toast('Copied: paste it into your mail app');
+			toast('Copié : collez-le dans votre application mail');
 		} catch {
-			toast('Copy failed: select the text instead.', 'error');
+			toast('Échec de la copie : sélectionnez le texte à la place.', 'error');
 		}
 	}
 
@@ -68,12 +68,13 @@
 		return async ({ result, update }) => {
 			done();
 			if (result.type === 'error') {
-				toast('Something went wrong.', 'error');
+				toast('Une erreur est survenue.', 'error');
 				return;
 			}
-			if (result.type === 'redirect') toast(`${plural(count, 'book')} moved to Bookstore 📨`);
+			if (result.type === 'redirect')
+				toast(`${plural(count, 'livre')} déplacé${count > 1 ? 's' : ''} vers Libraire 📨`);
 			if (result.type === 'failure')
-				toast(String(result.data?.message ?? 'Could not save.'), 'error');
+				toast(String(result.data?.message ?? 'Impossible d’enregistrer.'), 'error');
 			await update();
 		};
 	};
@@ -84,19 +85,19 @@
 </svelte:head>
 
 <a href={resolve('/cart')} class="btn btn-sm btn-ghost mb-4 -ml-2"
-	><ArrowLeft class="size-4" /> Cart</a
+	><ArrowLeft class="size-4" /> Panier</a
 >
-<PageHeader title="Order email" kicker="Step 3 · Ask your bookstore" tone="teal" />
+<PageHeader title="Email de commande" kicker="Étape 3 · Demandez à votre libraire" tone="teal" />
 
 {#if data.books.length === 0}
-	<Empty title="Nothing to order" text="Your cart is empty.">
-		<a href={resolve('/')} class="btn bg-orange">Find a book</a>
+	<Empty title="Rien à commander" text="Votre panier est vide.">
+		<a href={resolve('/')} class="btn bg-orange">Trouver un livre</a>
 	</Empty>
 {:else}
 	<form method="POST" action="?/sent" use:enhance={sent} class="grid gap-6">
 		<section class="card p-4 sm:p-5" aria-labelledby="books-title">
 			<h2 id="books-title" class="label mb-3">
-				Books in this email · {chosen.length}/{data.books.length}
+				Livres dans cet email · {chosen.length}/{data.books.length}
 			</h2>
 			<ul class="grid gap-2">
 				{#each data.books as book (book.id)}
@@ -138,7 +139,7 @@
 		<section class="card grid gap-4 p-4 sm:p-5" aria-label="Message">
 			<div class="grid gap-4 sm:grid-cols-[1fr_auto]">
 				<div>
-					<label for="to" class="label mb-1.5 block">To</label>
+					<label for="to" class="label mb-1.5 block">À</label>
 					<input
 						id="to"
 						name="to"
@@ -146,11 +147,11 @@
 						class="input"
 						value={to}
 						oninput={(e) => (to = e.currentTarget.value)}
-						placeholder="bookstore@example.com"
+						placeholder="libraire@exemple.com"
 					/>
 				</div>
 				<fieldset>
-					<legend class="label mb-1.5">Language</legend>
+					<legend class="label mb-1.5">Langue</legend>
 					<div class="flex gap-2">
 						{#each LANGS as l (l.value)}
 							<label class="choice has-checked:bg-ink has-checked:text-cream">
@@ -170,7 +171,7 @@
 			</div>
 
 			<div>
-				<label for="subject" class="label mb-1.5 block">Subject</label>
+				<label for="subject" class="label mb-1.5 block">Objet</label>
 				<input
 					id="subject"
 					name="subject"
@@ -192,7 +193,7 @@
 								bodyEdit = null;
 							}}
 						>
-							<RotateCcw class="size-3.5" /> Reset text
+							<RotateCcw class="size-3.5" /> Réinitialiser le texte
 						</button>
 					{/if}
 				</div>
@@ -207,17 +208,18 @@
 
 			{#if !data.settings.myName || !data.settings.bookstoreName}
 				<p class="text-sm text-ink/70">
-					Tip: add your name and your bookstore's in
-					<a href={resolve('/settings')} class="font-bold underline">Settings</a> to personalise the message.
+					Astuce : ajoutez votre nom et celui de votre libraire dans les
+					<a href={resolve('/settings')} class="font-bold underline">Réglages</a> pour personnaliser le
+					message.
 				</p>
 			{/if}
 		</section>
 
-		<section class="card grid gap-3 bg-orange-soft p-4 sm:p-5" aria-label="Send">
+		<section class="card grid gap-3 bg-orange-soft p-4 sm:p-5" aria-label="Envoyer">
 			<div class="flex flex-wrap gap-2">
 				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- mailto: link -->
 				<a {href} class="btn bg-orange" onclick={() => (opened = true)}>
-					<Mail class="size-4" /> Open in mail app
+					<Mail class="size-4" /> Ouvrir dans l'app mail
 				</a>
 				<!-- eslint-disable svelte/no-navigation-without-resolve -- external Gmail link -->
 				<a
@@ -227,11 +229,11 @@
 					class="btn"
 					onclick={() => (opened = true)}
 				>
-					<Mail class="size-4" /> Open in Gmail
+					<Mail class="size-4" /> Ouvrir dans Gmail
 				</a>
 				<!-- eslint-enable svelte/no-navigation-without-resolve -->
 				<button type="button" class="btn" onclick={copy} disabled={!chosen.length}>
-					<Copy class="size-4" /> Copy text
+					<Copy class="size-4" /> Copier le texte
 				</button>
 			</div>
 			<div
@@ -241,11 +243,11 @@
 				]}
 			>
 				<p class="text-sm">
-					<span class="font-bold">Sent it?</span> Move {plural(chosen.length, 'book')} to the Bookstore
-					list to log the answer.
+					<span class="font-bold">Envoyé ?</span> Déplacez {plural(chosen.length, 'livre')} vers la liste
+					Libraire pour noter la réponse.
 				</p>
 				<button class="btn shrink-0 bg-teal" disabled={!chosen.length}>
-					<Send class="size-4" /> I sent it
+					<Send class="size-4" /> Je l'ai envoyé
 				</button>
 			</div>
 		</section>

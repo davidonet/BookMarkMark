@@ -16,18 +16,18 @@
 <form
 	method="POST"
 	action="?/later"
-	use:enhance={withToast('Saved for later ⏳')}
+	use:enhance={withToast('Enregistré pour plus tard ⏳')}
 	class="grid gap-3 rounded-xl border-[3px] border-dashed border-ink bg-violet-soft/70 p-3"
 >
 	<input type="hidden" name="id" value={id} />
 	<div>
-		<label class="label mb-1.5 block" for={`${uid}-reason`}>Why later?</label>
+		<label class="label mb-1.5 block" for={`${uid}-reason`}>Pourquoi plus tard ?</label>
 		<Combobox
 			id={`${uid}-reason`}
 			name="reason"
 			options={reasons}
-			placeholder="Waiting for the paperback…"
-			newLabel="New reason"
+			placeholder="En attente du poche…"
+			newLabel="Nouvelle raison"
 			maxlength={80}
 		/>
 	</div>
@@ -36,10 +36,10 @@
 		name="note"
 		rows="2"
 		maxlength="300"
-		aria-label="Note (optional)"
-		placeholder="Anything to remember? (optional)"></textarea>
+		aria-label="Note (optionnelle)"
+		placeholder="Quelque chose à noter ? (optionnel)"></textarea>
 	<div class="flex gap-2">
-		<button class="btn btn-sm bg-violet">Postpone</button>
-		<button type="button" class="btn btn-sm btn-ghost" onclick={oncancel}>Cancel</button>
+		<button class="btn btn-sm bg-violet">Reporter</button>
+		<button type="button" class="btn btn-sm btn-ghost" onclick={oncancel}>Annuler</button>
 	</div>
 </form>

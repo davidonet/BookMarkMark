@@ -26,7 +26,7 @@
 		id,
 		placeholder = '',
 		placement = 'down',
-		newLabel = 'New',
+		newLabel = 'Nouveau',
 		maxlength = 60,
 		oncommit
 	}: Props = $props();
@@ -139,7 +139,7 @@
 	<button
 		type="button"
 		tabindex="-1"
-		aria-label="Show suggestions"
+		aria-label="Afficher les suggestions"
 		class="absolute inset-y-0 right-0 grid w-11 cursor-pointer place-items-center"
 		onmousedown={(e) => e.preventDefault()}
 		onclick={() => {

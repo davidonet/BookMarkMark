@@ -18,10 +18,10 @@
 
 	type Filter = 'all' | PostponeKind;
 	const FILTERS: { value: Filter; label: string }[] = [
-		{ value: 'all', label: 'All' },
-		{ value: 'mine', label: 'My reasons' },
-		{ value: 'out_of_print', label: 'Out of print' },
-		{ value: 'not_accessible', label: 'Not at my bookstore' }
+		{ value: 'all', label: 'Tous' },
+		{ value: 'mine', label: 'Mes raisons' },
+		{ value: 'out_of_print', label: 'Épuisé' },
+		{ value: 'not_accessible', label: 'Pas chez mon libraire' }
 	];
 	const KIND_TONE: Record<PostponeKind, string> = {
 		mine: 'bg-violet-soft',
@@ -40,19 +40,19 @@
 </script>
 
 <svelte:head>
-	<title>Later · BookMarkMark</title>
+	<title>Plus tard · BookMarkMark</title>
 </svelte:head>
 
 <RefreshWhilePending active={data.books.some(isLookingUp)} />
-<PageHeader title="Later" kicker="Not now, not never" tone="lilac" />
+<PageHeader title="Plus tard" kicker="Pas maintenant, pas jamais" tone="lilac" />
 
 {#if data.books.length === 0}
 	<Empty
-		title="Nothing postponed"
-		text="Books you put aside, or that your bookstore could not get, wait here with their reason."
+		title="Rien de reporté"
+		text="Les livres que vous mettez de côté, ou que votre libraire n'a pas pu obtenir, attendent ici avec leur motif."
 	/>
 {:else}
-	<div class="mb-5 flex flex-wrap gap-2" role="group" aria-label="Filter by reason">
+	<div class="mb-5 flex flex-wrap gap-2" role="group" aria-label="Filtrer par motif">
 		{#each FILTERS as f (f.value)}
 			{@const n = countOf(f.value)}
 			{#if f.value === 'all' || n > 0}
@@ -73,17 +73,17 @@
 			<li animate:flip={{ duration: 250 }} out:fly={{ x: 80, duration: 200 }}>
 				<BookCard {book}>
 					{#snippet aside()}
-						<form method="POST" action="?/remove" use:enhance={withToast('Removed')}>
+						<form method="POST" action="?/remove" use:enhance={withToast('Supprimé')}>
 							<input type="hidden" name="id" value={book.id} />
-							<ConfirmButton label="Delete from BookMarkMark" />
+							<ConfirmButton label="Supprimer de BookMarkMark" />
 						</form>
 					{/snippet}
 					{#snippet meta()}
 						{#if book.postponed}
 							<span class={['chip', KIND_TONE[book.postponed.kind]]}>{book.postponed.reason}</span>
-							<span class="chip border-dashed bg-transparent">since {ago(book.postponed.at)}</span>
+							<span class="chip border-dashed bg-transparent">depuis {ago(book.postponed.at)}</span>
 						{/if}
-						{#if book.source}<span class="chip">heard via {book.source}</span>{/if}
+						{#if book.source}<span class="chip">entendu via {book.source}</span>{/if}
 					{/snippet}
 
 					{#if book.postponed?.note}
@@ -96,15 +96,15 @@
 							<form
 								method="POST"
 								action="?/backToCart"
-								use:enhance={withToast('Back in the cart 🛒')}
+								use:enhance={withToast('De retour dans le panier 🛒')}
 							>
 								<input type="hidden" name="id" value={book.id} />
 								<button class="btn btn-sm bg-violet"
-									><ShoppingBasket class="size-4" /> Back to cart</button
+									><ShoppingBasket class="size-4" /> Retour au panier</button
 								>
 							</form>
 							<button type="button" class="btn btn-sm bg-teal" onclick={() => (ownedFor = book.id)}>
-								<Check class="size-4" /> Got it elsewhere
+								<Check class="size-4" /> Obtenu ailleurs
 							</button>
 						</div>
 					{/if}

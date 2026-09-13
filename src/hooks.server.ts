@@ -9,7 +9,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const isLogin = pathname === '/login' || pathname.startsWith('/login/');
 	if (!event.locals.authed && !isLogin) {
 		if (pathname.startsWith('/api/')) {
-			return Response.json({ message: 'Locked' }, { status: 401 });
+			return Response.json({ message: 'Verrouillé' }, { status: 401 });
 		}
 		const next =
 			pathname === '/' && !search ? '' : `?next=${encodeURIComponent(pathname + search)}`;

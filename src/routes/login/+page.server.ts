@@ -19,7 +19,7 @@ export const actions = {
 	default: async ({ request, cookies, url, getClientAddress }) => {
 		const form = await request.formData();
 		const pin = String(form.get('pin') ?? '').trim();
-		if (!/^\d{4}$/.test(pin)) return fail(400, { message: 'Enter your 4 digits.' });
+		if (!/^\d{4}$/.test(pin)) return fail(400, { message: 'Saisissez vos 4 chiffres.' });
 
 		const check = await checkPin(pin, getClientAddress());
 		if (!check.ok) return fail(401, { message: check.message });

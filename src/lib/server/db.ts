@@ -19,12 +19,12 @@ export interface Collections {
 	attempts: Collection<AttemptDoc>;
 }
 
-const DEFAULT_SOURCES = ['Friend', 'Radio', 'Newsletter', 'Podcast'];
+const DEFAULT_SOURCES = ['Ami', 'Radio', 'Newsletter', 'Podcast'];
 const DEFAULT_REASONS = [
-	'Waiting for the paperback',
-	'Too pricey for now',
-	'Try the library first',
-	'Not the right moment'
+	'En attente du poche',
+	'Trop cher pour le moment',
+	'Essayer la bibliothèque d’abord',
+	'Pas le bon moment'
 ];
 
 // Survives dev-server module reloads and is reused across requests on a warm instance.

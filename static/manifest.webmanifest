@@ -1,7 +1,7 @@
 {
 	"name": "BookMarkMark",
 	"short_name": "BookMark",
-	"description": "Keep track of the books you heard about, order them from your bookstore, remember what you own.",
+	"description": "Gardez une trace des livres dont vous avez entendu parler, commandez-les chez votre libraire, souvenez-vous de ce que vous possédez.",
 	"start_url": "/",
 	"display": "standalone",
 	"background_color": "#fff3dc",

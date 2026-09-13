@@ -2,7 +2,7 @@ import { fail, type RequestEvent } from '@sveltejs/kit';
 import * as books from './books';
 import type { CatalogBook } from '$lib/types';
 
-const MOVED = 'That book has moved in the meantime.';
+const MOVED = 'Ce livre a changé de statut entre-temps.';
 const COVER_HOSTS = ['books.google.com', 'books.googleusercontent.com', 'covers.openlibrary.org'];
 
 /** Trimmed, length-capped string field. */
@@ -75,7 +75,8 @@ export const bookActions = {
 	async owned({ request }: RequestEvent) {
 		const form = await request.formData();
 		const via = field(form, 'via');
-		if (via !== 'direct' && via !== 'online') return fail(400, { message: 'Pick how you got it.' });
+		if (via !== 'direct' && via !== 'online')
+			return fail(400, { message: 'Indiquez comment vous l’avez obtenu.' });
 		const ok = await books.markOwned(field(form, 'id'), via, field(form, 'note', 300));
 		return ok ? { ok } : fail(409, { message: MOVED });
 	},

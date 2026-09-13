@@ -32,29 +32,29 @@
 </script>
 
 <svelte:head>
-	<title>Cart · BookMarkMark</title>
+	<title>Panier · BookMarkMark</title>
 </svelte:head>
 
 <RefreshWhilePending active={data.books.some(isLookingUp)} />
-<PageHeader title="Cart" kicker="Step 2 · Sort it out" tone="violet">
+<PageHeader title="Panier" kicker="Étape 2 · Faites le tri" tone="violet">
 	{#if data.books.length}
 		<a href={resolve('/cart/email')} class="btn bg-orange"
-			><Mail class="size-4" /> Email bookstore</a
+			><Mail class="size-4" /> Email au libraire</a
 		>
 	{/if}
 </PageHeader>
 
 {#if data.books.length === 0}
 	<Empty
-		title="Cart is empty"
-		text="Books you add from the search land here, ready to be ordered from your bookstore."
+		title="Panier vide"
+		text="Les livres que vous ajoutez depuis la recherche atterrissent ici, prêts à être commandés à votre libraire."
 	>
-		<a href={resolve('/')} class="btn bg-orange">Find a book</a>
+		<a href={resolve('/')} class="btn bg-orange">Trouver un livre</a>
 	</Empty>
 {:else}
 	<p class="mb-5 text-ink/75">
-		{plural(data.books.length, 'book')} to ask your bookstore about. Already got one, or not now? Flag
-		it.
+		{plural(data.books.length, 'livre')} à demander à votre libraire. Déjà obtenu, ou pas maintenant ?
+		Signalez-le.
 	</p>
 
 	<ul class="grid gap-4">
@@ -62,13 +62,13 @@
 			<li animate:flip={{ duration: 250 }} out:fly={{ x: 80, duration: 200 }}>
 				<BookCard {book}>
 					{#snippet aside()}
-						<form method="POST" action="?/remove" use:enhance={withToast('Removed from the cart')}>
+						<form method="POST" action="?/remove" use:enhance={withToast('Retiré du panier')}>
 							<input type="hidden" name="id" value={book.id} />
-							<ConfirmButton label="Remove from cart" />
+							<ConfirmButton label="Retirer du panier" />
 						</form>
 					{/snippet}
 					{#snippet meta()}
-						<span class="chip border-dashed bg-transparent">added {ago(book.createdAt)}</span>
+						<span class="chip border-dashed bg-transparent">ajouté {ago(book.createdAt)}</span>
 					{/snippet}
 
 					<div class="grid gap-3">
@@ -84,14 +84,14 @@
 									class="btn btn-sm bg-teal"
 									onclick={() => (panel = { id: book.id, kind: 'owned' })}
 								>
-									<Check class="size-4" /> Owned
+									<Check class="size-4" /> Possédé
 								</button>
 								<button
 									type="button"
 									class="btn btn-sm bg-violet-soft"
 									onclick={() => (panel = { id: book.id, kind: 'later' })}
 								>
-									<Hourglass class="size-4" /> Later
+									<Hourglass class="size-4" /> Plus tard
 								</button>
 							</div>
 						{/if}
@@ -105,25 +105,25 @@
 		class="card mt-8 flex flex-col items-start justify-between gap-4 bg-orange-soft p-5 sm:flex-row sm:items-center"
 	>
 		<div>
-			<p class="text-xl font-extrabold uppercase">Ready to order?</p>
+			<p class="text-xl font-extrabold uppercase">Prêt à commander ?</p>
 			<p class="text-sm text-ink/75">
-				One email to your bookstore with {data.books.length > 1
-					? `these ${data.books.length} books`
-					: 'this book'}.
+				Un email à votre libraire avec {data.books.length > 1
+					? `ces ${data.books.length} livres`
+					: 'ce livre'}.
 			</p>
 			{#if priced.length}
 				<p class="mt-1 text-sm font-bold">
 					≈ {formatPrice(total)}
 					<span class="font-normal text-ink/70">
 						{priced.length < data.books.length
-							? `(price known for ${priced.length} of ${data.books.length})`
-							: 'at the French retail price'}
+							? `(prix connu pour ${priced.length} sur ${data.books.length})`
+							: 'au prix public France'}
 					</span>
 				</p>
 			{/if}
 		</div>
 		<a href={resolve('/cart/email')} class="btn btn-lg bg-orange"
-			><Mail class="size-5" /> Prepare email</a
+			><Mail class="size-5" /> Préparer l'email</a
 		>
 	</div>
 {/if}

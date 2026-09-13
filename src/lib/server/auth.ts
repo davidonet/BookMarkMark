@@ -52,7 +52,7 @@ type PinCheck = { ok: true } | { ok: false; message: string };
 /** Checks a PIN with a per-IP lockout that doubles each time (15 min, 30 min, 1 h … 24 h). */
 export async function checkPin(input: string, clientKey: string): Promise<PinCheck> {
 	const { pin } = appPin();
-	if (!pin) return { ok: false, message: 'APP_PIN is not configured on the server.' };
+	if (!pin) return { ok: false, message: 'APP_PIN n’est pas configuré sur le serveur.' };
 
 	const { attempts } = await collections();
 	const now = new Date();
@@ -60,7 +60,7 @@ export async function checkPin(input: string, clientKey: string): Promise<PinChe
 
 	if (doc?.lockedUntil && doc.lockedUntil > now) {
 		const minutes = Math.ceil((doc.lockedUntil.getTime() - now.getTime()) / 60_000);
-		return { ok: false, message: `Too many tries. Try again in ${minutes} min.` };
+		return { ok: false, message: `Trop d’essais. Réessayez dans ${minutes} min.` };
 	}
 
 	if (safeEqual(input, pin)) {
@@ -86,9 +86,13 @@ export async function checkPin(input: string, clientKey: string): Promise<PinChe
 	);
 	await new Promise((resolve) => setTimeout(resolve, 400));
 
-	if (locked) return { ok: false, message: `Too many tries. Locked for ${lockMinutes} min.` };
+	if (locked)
+		return { ok: false, message: `Trop d’essais. Verrouillé pendant ${lockMinutes} min.` };
 	const left = MAX_FAILS - fails;
-	return { ok: false, message: `Wrong PIN. ${left} ${left === 1 ? 'try' : 'tries'} left.` };
+	return {
+		ok: false,
+		message: `Code incorrect. ${left} essai${left === 1 ? '' : 's'} restant${left === 1 ? '' : 's'}.`
+	};
 }
 
 /** Only allow same-site relative redirects after login. */

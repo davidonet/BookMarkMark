@@ -19,7 +19,7 @@ export const actions = {
 		const form = await request.formData();
 		const bookstoreEmail = field(form, 'bookstoreEmail', 200);
 		if (bookstoreEmail && !EMAIL_RE.test(bookstoreEmail)) {
-			return fail(400, { message: 'That email address looks off.' });
+			return fail(400, { message: 'Cette adresse email semble incorrecte.' });
 		}
 		await saveSettings({
 			bookstoreName: field(form, 'bookstoreName', 100),
@@ -35,7 +35,7 @@ export const actions = {
 	forget: async ({ request }) => {
 		const form = await request.formData();
 		const kind = field(form, 'kind');
-		if (kind !== 'source' && kind !== 'reason') return fail(400, { message: 'Unknown list.' });
+		if (kind !== 'source' && kind !== 'reason') return fail(400, { message: 'Liste inconnue.' });
 		await forgetTag(kind, field(form, 'name', 100));
 		return { ok: true };
 	},

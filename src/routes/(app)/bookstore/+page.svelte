@@ -24,7 +24,7 @@
 </script>
 
 <svelte:head>
-	<title>Bookstore · BookMarkMark</title>
+	<title>Libraire · BookMarkMark</title>
 </svelte:head>
 
 <RefreshWhilePending
@@ -32,34 +32,36 @@
 		isLookingUp
 	)}
 />
-<PageHeader title="Bookstore" kicker="Step 4 · Log the answer" tone="teal" />
+<PageHeader title="Libraire" kicker="Étape 4 · Notez la réponse" tone="teal" />
 
 {#if nothing}
 	<Empty
-		title="Nothing pending"
-		text="Once you email your bookstore from the cart, the books wait here for their answer."
+		title="Rien en attente"
+		text="Une fois l'email envoyé à votre libraire depuis le panier, les livres attendent ici leur réponse."
 	>
-		<a href={resolve('/cart')} class="btn bg-violet">Go to the cart</a>
+		<a href={resolve('/cart')} class="btn bg-violet">Aller au panier</a>
 	</Empty>
 {/if}
 
 {#each data.board.waiting as group (group.id)}
-	<section class="mb-10" aria-label={`Asked ${ago(group.createdAt)}`}>
+	<section class="mb-10" aria-label={`Demandé ${ago(group.createdAt)}`}>
 		<div class="mb-3 flex flex-wrap items-center justify-between gap-3">
 			<div>
-				<h2 class="text-xl leading-tight font-extrabold uppercase">Asked {ago(group.createdAt)}</h2>
+				<h2 class="text-xl leading-tight font-extrabold uppercase">
+					Demandé {ago(group.createdAt)}
+				</h2>
 				<p class="text-sm text-ink/70">
-					{plural(group.books.length, 'book')} waiting for an answer{group.to
+					{plural(group.books.length, 'livre')} en attente d'une réponse{group.to
 						? ` · ${group.to}`
 						: ''}
 				</p>
 			</div>
 			{#if group.books.length > 1}
-				<form method="POST" action="?/confirm" use:enhance={withToast('All confirmed 🎉')}>
+				<form method="POST" action="?/confirm" use:enhance={withToast('Tous confirmés 🎉')}>
 					{#each group.books as book (book.id)}
 						<input type="hidden" name="id" value={book.id} />
 					{/each}
-					<button class="btn btn-sm bg-teal"><CheckCheck class="size-4" /> All confirmed</button>
+					<button class="btn btn-sm bg-teal"><CheckCheck class="size-4" /> Tous confirmés</button>
 				</form>
 			{/if}
 		</div>
@@ -68,7 +70,7 @@
 			<details
 				class="group mb-3 rounded-xl border-[3px] border-dashed border-ink bg-paper/70 p-3 text-sm"
 			>
-				<summary class="cursor-pointer font-bold">Show the email</summary>
+				<summary class="cursor-pointer font-bold">Voir l'email</summary>
 				{#if group.subject}<p class="mt-2 font-bold">{group.subject}</p>{/if}
 				<pre class="mt-2 font-mono text-xs leading-relaxed whitespace-pre-wrap">{group.body}</pre>
 			</details>
@@ -85,24 +87,25 @@
 							<UnavailableForm id={book.id} oncancel={() => (unavailableFor = null)} />
 						{:else}
 							<div class="flex flex-wrap items-center gap-2">
-								<form method="POST" action="?/confirm" use:enhance={withToast('Confirmed ✓')}>
+								<form method="POST" action="?/confirm" use:enhance={withToast('Confirmé ✓')}>
 									<input type="hidden" name="id" value={book.id} />
-									<button class="btn btn-sm bg-teal"><Check class="size-4" /> Confirmed</button>
+									<button class="btn btn-sm bg-teal"><Check class="size-4" /> Confirmé</button>
 								</form>
 								<button
 									type="button"
 									class="btn btn-sm bg-orange-soft"
 									onclick={() => (unavailableFor = book.id)}
 								>
-									<X class="size-4" /> Unavailable
+									<X class="size-4" /> Indisponible
 								</button>
 								<form
 									method="POST"
 									action="?/backToCart"
-									use:enhance={withToast('Back in the cart')}
+									use:enhance={withToast('De retour dans le panier')}
 								>
 									<input type="hidden" name="id" value={book.id} />
-									<button class="btn btn-sm btn-ghost"><Undo2 class="size-4" /> Back to cart</button
+									<button class="btn btn-sm btn-ghost"
+										><Undo2 class="size-4" /> Retour au panier</button
 									>
 								</form>
 							</div>
@@ -119,19 +122,19 @@
 		<div class="mb-3 flex flex-wrap items-center justify-between gap-3">
 			<div>
 				<h2 id="pickup-title" class="text-xl leading-tight font-extrabold uppercase">
-					Confirmed · to pick up
+					Confirmés · à récupérer
 				</h2>
 				<p class="text-sm text-ink/70">
-					{plural(data.board.confirmed.length, 'book')} on the way. Picked up? Put them on your shelf.
+					{plural(data.board.confirmed.length, 'livre')} en route. Récupérés ? Mettez-les sur votre étagère.
 				</p>
 			</div>
 			{#if data.board.confirmed.length > 1}
-				<form method="POST" action="?/gotIt" use:enhance={withToast('All on your shelf 📚')}>
+				<form method="POST" action="?/gotIt" use:enhance={withToast('Tous sur votre étagère 📚')}>
 					{#each data.board.confirmed as book (book.id)}
 						<input type="hidden" name="id" value={book.id} />
 					{/each}
 					<button class="btn btn-sm bg-ink text-cream"
-						><LibraryBig class="size-4" /> Got them all</button
+						><LibraryBig class="size-4" /> Tous récupérés</button
 					>
 				</form>
 			{/if}
@@ -141,14 +144,14 @@
 				<li animate:flip={{ duration: 250 }} out:fly={{ x: 80, duration: 200 }}>
 					<BookCard {book} class="bg-teal-soft/50">
 						{#snippet meta()}
-							<span class="chip bg-teal">Confirmed {ago(book.confirmedAt)}</span>
+							<span class="chip bg-teal">Confirmé {ago(book.confirmedAt)}</span>
 							{#if book.source}<span class="chip">via {book.source}</span>{/if}
 						{/snippet}
 						<div class="flex flex-wrap items-center gap-2">
-							<form method="POST" action="?/gotIt" use:enhance={withToast('On your shelf 📚')}>
+							<form method="POST" action="?/gotIt" use:enhance={withToast('Sur votre étagère 📚')}>
 								<input type="hidden" name="id" value={book.id} />
 								<button class="btn btn-sm bg-ink text-cream"
-									><LibraryBig class="size-4" /> Got it!</button
+									><LibraryBig class="size-4" /> Récupéré !</button
 								>
 							</form>
 							{#if unavailableFor === book.id}
@@ -161,7 +164,7 @@
 									class="btn btn-sm btn-ghost"
 									onclick={() => (unavailableFor = book.id)}
 								>
-									<X class="size-4" /> Fell through
+									<X class="size-4" /> Est tombé à l'eau
 								</button>
 							{/if}
 						</div>

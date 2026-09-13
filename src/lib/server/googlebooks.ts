@@ -68,10 +68,10 @@ function dropTwins(books: CatalogBook[]) {
 }
 
 function errorMessage(status: number, body: string) {
-	if (status === 429) return 'its daily quota is used up';
-	if (/API_KEY_INVALID|API key not valid/i.test(body)) return 'the API key is not valid';
-	if (status === 403) return 'the key was refused (is the Books API enabled for it?)';
-	return `it answered ${status}`;
+	if (status === 429) return 'son quota journalier est épuisé';
+	if (/API_KEY_INVALID|API key not valid/i.test(body)) return "la clé API n'est pas valide";
+	if (status === 403) return "la clé a été refusée (l'API Books est-elle activée pour elle ?)";
+	return `il a répondu ${status}`;
 }
 
 async function fetchVolumes(

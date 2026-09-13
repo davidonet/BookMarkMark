@@ -75,7 +75,7 @@
 				target="_blank"
 				rel="noopener noreferrer"
 				class="self-start"
-				aria-label={`${book.title} on ${link.site}`}
+				aria-label={`${book.title} sur ${link.site}`}
 			>
 				<BookCover cover={book.cover} title={book.title} class="w-16 sm:w-20" />
 			</a>
@@ -114,7 +114,7 @@
 					{#if book.price}
 						<span
 							class="chip bg-cream-deep"
-							title={`${book.price.kind === 'ebook' ? 'Ebook price' : 'French retail price'} · ${book.price.source}`}
+							title={`${book.price.kind === 'ebook' ? 'Prix ebook' : 'Prix public France'} · ${book.price.source}`}
 						>
 							{formatPrice(book.price.amount)}{#if book.price.kind === 'ebook'}<span
 									class="font-medium">&nbsp;ebook</span
@@ -124,7 +124,7 @@
 					{#if book.pocket?.price}
 						<span
 							class="chip bg-teal-soft"
-							title={`French retail price of the paperback · ${book.pocket.price.source}`}
+							title={`Prix public France du poche · ${book.pocket.price.source}`}
 						>
 							{formatPrice(book.pocket.price.amount)}<span class="font-medium">&nbsp;poche</span>
 						</span>

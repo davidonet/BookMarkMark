@@ -119,22 +119,22 @@ export interface Settings {
 }
 
 export const STATUS_LABEL: Record<Status, string> = {
-	cart: 'In cart',
-	requested: 'Asked bookstore',
-	confirmed: 'Confirmed',
-	owned: 'Owned',
-	postponed: 'Later'
+	cart: 'Dans le panier',
+	requested: 'Demandé au libraire',
+	confirmed: 'Confirmé',
+	owned: 'Possédé',
+	postponed: 'Plus tard'
 };
 
 export const OWNED_VIA_LABEL: Record<OwnedVia, string> = {
-	bookstore: 'Local bookstore',
-	direct: 'Bought directly',
-	online: 'Online service'
+	bookstore: 'Librairie locale',
+	direct: 'Acheté directement',
+	online: 'Service en ligne'
 };
 
 export const UNAVAILABLE_LABEL: Record<Exclude<PostponeKind, 'mine'>, string> = {
-	out_of_print: 'Out of print',
-	not_accessible: 'Not accessible to this bookstore'
+	out_of_print: 'Épuisé',
+	not_accessible: 'Non accessible à cette librairie'
 };
 
 export const PROVIDER_LABEL: Record<Provider, string> = {

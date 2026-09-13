@@ -15,58 +15,63 @@
 	const EDITION_LANGS: { value: EditionLang; label: string }[] = [
 		{ value: 'fr', label: 'Français' },
 		{ value: 'en', label: 'English' },
-		{ value: '', label: 'Any language' }
+		{ value: '', label: "N'importe quelle langue" }
 	];
 
 	const lists = $derived<{ kind: TagKind; title: string; hint: string; items: string[] }[]>([
 		{
 			kind: 'source',
 			title: 'Sources',
-			hint: 'Offered when you add a book. New ones are remembered automatically.',
+			hint: 'Proposées quand vous ajoutez un livre. Les nouvelles sont mémorisées automatiquement.',
 			items: data.sources
 		},
 		{
 			kind: 'reason',
-			title: 'Postpone reasons',
-			hint: 'Offered when you put a book aside for later.',
+			title: 'Raisons de report',
+			hint: 'Proposées quand vous mettez un livre de côté pour plus tard.',
 			items: data.reasons
 		}
 	]);
 </script>
 
 <svelte:head>
-	<title>Settings · BookMarkMark</title>
+	<title>Réglages · BookMarkMark</title>
 </svelte:head>
 
-<PageHeader title="Settings" kicker="Make it yours" tone="orange" />
+<PageHeader title="Réglages" kicker="Personnalisez" tone="orange" />
 
-<form method="POST" action="?/save" use:enhance={withToast('Saved ✓')} class="card grid gap-5 p-5">
-	<h2 class="text-xl font-extrabold uppercase">Your bookstore</h2>
+<form
+	method="POST"
+	action="?/save"
+	use:enhance={withToast('Enregistré ✓')}
+	class="card grid gap-5 p-5"
+>
+	<h2 class="text-xl font-extrabold uppercase">Votre libraire</h2>
 	<div class="grid gap-4 sm:grid-cols-2">
 		<div>
-			<label for="bookstoreName" class="label mb-1.5 block">Bookstore name</label>
+			<label for="bookstoreName" class="label mb-1.5 block">Nom de la librairie</label>
 			<input
 				id="bookstoreName"
 				name="bookstoreName"
 				class="input"
 				maxlength="100"
 				value={data.settings.bookstoreName}
-				placeholder="The corner bookshop"
+				placeholder="La librairie du coin"
 			/>
 		</div>
 		<div>
-			<label for="bookstoreEmail" class="label mb-1.5 block">Bookstore email</label>
+			<label for="bookstoreEmail" class="label mb-1.5 block">Email de la librairie</label>
 			<input
 				id="bookstoreEmail"
 				name="bookstoreEmail"
 				type="email"
 				class="input"
 				value={data.settings.bookstoreEmail}
-				placeholder="hello@bookshop.com"
+				placeholder="bonjour@librairie.fr"
 			/>
 		</div>
 		<div>
-			<label for="myName" class="label mb-1.5 block">Your name (email signature)</label>
+			<label for="myName" class="label mb-1.5 block">Votre nom (signature de l'email)</label>
 			<input
 				id="myName"
 				name="myName"
@@ -77,7 +82,7 @@
 			/>
 		</div>
 		<fieldset>
-			<legend class="label mb-1.5">Email language</legend>
+			<legend class="label mb-1.5">Langue de l'email</legend>
 			<div class="flex gap-2">
 				{#each LANGS as l (l.value)}
 					<label class="choice has-checked:bg-ink has-checked:text-cream">
@@ -95,9 +100,9 @@
 		</fieldset>
 	</div>
 
-	<h2 class="mt-2 text-xl font-extrabold uppercase">Search</h2>
+	<h2 class="mt-2 text-xl font-extrabold uppercase">Recherche</h2>
 	<fieldset>
-		<legend class="label mb-1.5">Editions first in</legend>
+		<legend class="label mb-1.5">Éditions en premier en</legend>
 		<div class="flex flex-wrap gap-2">
 			{#each EDITION_LANGS as l (l.value)}
 				<label class="choice has-checked:bg-ink has-checked:text-cream">
@@ -113,10 +118,11 @@
 			{/each}
 		</div>
 		<p class="mt-2 text-sm text-ink/70">
-			Google Books lists every edition of a book: those in this language come first.
+			Google Books liste toutes les éditions d'un livre : celles dans cette langue arrivent en
+			premier.
 		</p>
 	</fieldset>
-	<div><button class="btn bg-orange">Save</button></div>
+	<div><button class="btn bg-orange">Enregistrer</button></div>
 </form>
 
 {#each lists as list (list.kind)}
@@ -130,7 +136,7 @@
 						<form
 							method="POST"
 							action="?/forget"
-							use:enhance={withToast(`Forgot “${name}”`)}
+							use:enhance={withToast(`"${name}" oublié`)}
 							class="chip gap-1 py-1 pr-1 pl-3 text-sm"
 						>
 							<input type="hidden" name="kind" value={list.kind} />
@@ -138,7 +144,7 @@
 							{name}
 							<button
 								class="grid size-6 cursor-pointer place-items-center rounded-full hover:bg-orange"
-								aria-label={`Forget ${name}`}
+								aria-label={`Oublier ${name}`}
 							>
 								<X class="size-3.5" />
 							</button>
@@ -147,21 +153,22 @@
 				{/each}
 			</ul>
 		{:else}
-			<p class="mt-4 text-sm text-ink/60">Nothing yet.</p>
+			<p class="mt-4 text-sm text-ink/60">Rien pour l'instant.</p>
 		{/if}
 	</section>
 {/each}
 
 <section class="card mt-6 grid gap-3 p-5" aria-labelledby="lock-title">
-	<h2 id="lock-title" class="text-xl font-extrabold uppercase">Lock</h2>
+	<h2 id="lock-title" class="text-xl font-extrabold uppercase">Verrouillage</h2>
 	<p class="text-sm text-ink/75">
-		The 4-digit PIN comes from the <code class="font-mono font-bold">APP_PIN</code> environment variable.
-		Changing it signs every device out.
+		Le code à 4 chiffres provient de la variable d'environnement <code class="font-mono font-bold"
+			>APP_PIN</code
+		>. La changer déconnecte tous les appareils.
 	</p>
 	{#if data.devPin}
-		<p class="chip w-fit bg-orange-soft">Dev mode: APP_PIN is not set, the PIN is 1234</p>
+		<p class="chip w-fit bg-orange-soft">Mode dev : APP_PIN non défini, le code est 1234</p>
 	{/if}
 	<form method="POST" action="?/lock" use:enhance>
-		<button class="btn bg-ink text-cream"><Lock class="size-4" /> Lock now</button>
+		<button class="btn bg-ink text-cream"><Lock class="size-4" /> Verrouiller maintenant</button>
 	</form>
 </section>

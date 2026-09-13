@@ -28,7 +28,7 @@ export const load: PageServerLoad = async ({ url }) => {
 						hasMore: false,
 						provider,
 						notice: null,
-						error: 'The book catalogs are not answering right now. Try again in a moment.'
+						error: 'Les catalogues ne répondent pas pour le moment. Réessayez dans un instant.'
 					})
 				);
 
@@ -45,7 +45,7 @@ export const actions = {
 	add: async ({ request }) => {
 		const form = await request.formData();
 		const items = parseNewBooks(form.get('books'));
-		if (!items.length) return fail(400, { message: 'Select at least one book first.' });
+		if (!items.length) return fail(400, { message: 'Sélectionnez au moins un livre.' });
 		return addToCart(items, field(form, 'source', 80));
 	}
 } satisfies Actions;

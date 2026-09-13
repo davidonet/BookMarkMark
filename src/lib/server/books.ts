@@ -187,7 +187,9 @@ export function markOwned(id: string, via: OwnedVia, note: string) {
 
 export async function postpone(id: string, kind: PostponeKind, rawReason: string, note: string) {
 	const reason =
-		kind === 'mine' ? (await rememberTag('reason', rawReason)) || 'Later' : UNAVAILABLE_LABEL[kind];
+		kind === 'mine'
+			? (await rememberTag('reason', rawReason)) || 'Plus tard'
+			: UNAVAILABLE_LABEL[kind];
 	return move(
 		id,
 		kind === 'mine' ? ['cart', 'requested', 'confirmed'] : ['requested', 'confirmed'],
